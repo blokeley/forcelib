@@ -6,7 +6,8 @@ from pprint import pprint
 
 import pandas as pd
 
-import forcelib
+from .. import forcelib
+# thing
 
 
 @unittest.skip
@@ -29,6 +30,31 @@ class TestIntSet(unittest.TestCase):
     def test_int_set(self):
         expected = set((1, 2, 3))
         self.assertEqual(expected, forcelib._int_set('1,2,3'))
+
+
+class TestCountHeaders(unittest.TestCase):
+
+    def test_count_headers(self):
+        # Tests defined as expected number, input text
+        tests = (
+            (3, "A\nB\nC\n0\n"),
+            (4, "A\nB\nC\nD\n0\n"))
+
+        for test in tests:
+            with self.subTest(test=test):
+                self.assertEqual(test[0], forcelib._count_headers(test[1]))
+
+    def test_no_integer(self):
+        with self.assertRaises(ValueError):
+            forcelib._count_headers("A\nB\nC\n")
+
+
+class TestExclude(unittest.TestCase):
+
+    def test_exclude(self):
+        excluded = (1, 3, 4)
+        # TODO: Create an example array for testing
+        # arr =
 
 
 @unittest.skip

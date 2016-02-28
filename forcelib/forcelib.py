@@ -5,10 +5,11 @@ import logging
 import pathlib
 
 import numpy as np
+import pandas as pd
 
 
 # Export public functions
-__all__ = ('read_csv', 'work')
+__all__ = ('read_forces', 'work')
 __version__ = '0.1.0'
 
 
@@ -42,7 +43,7 @@ def _count_headers(csv_data):
     raise ValueError('Line starting with integer not found')
 
 
-def read_csv(csv_filename, exclude=None):
+def read_forces(csv_filename, exclude=None):
     """Read the CSV file and return a `pandas.DataFrame`.
 
     The index is the distance in mm. The columns are the forces in N.
@@ -53,35 +54,76 @@ def read_csv(csv_filename, exclude=None):
 
     n_headers = _count_headers(head)
 
-    arrays = np.genfromtxt(csv_filename, delimiter=',', skip_header=n_headers)
+    # Read all CSV data into one big numpy.ndarray
+    all_data = np.genfromtxt(csv_filename, delimiter=',',
+                             skip_header=n_headers)
 
-    # Remove unwanted columns
-    np.delete(arrays, list(excluded), axis=0)
+    # Create column names so that sample IDs are not lost
+    columns = ['Sample {}'.format(i) for i in
+               range(1, 1 + (all_data.shape[1] / 4)) if i not in exclude]
 
-    # TODO: Convert ndarray to DataFrame
-    return arrays
+    # Remove unwanted columns and unwanted samples (tests)
+    excluded = _exclude(all_data.shape[1], exclude)
+    forces = np.delete(all_data, list(excluded), axis=1)
+
+    # Convert ndarray to DataFrame
+    return _ndarray_to_dataframe(forces, columns)
 
 
-def _exclude(arr, samples_to_exclude):
-    """TODO: update docstring
-    Return a sequence of column numbers to exclude.
+def _exclude(n_samples, samples_to_exclude=None):
+    """Return a sequence of column numbers to exclude.
 
-    Create a sequence with  the event column (column 3 of the 4 for each sample),
-    and all 4 columns of those in the samples_to_exclude argument.
+    The returned sequence lists:
+        1. The time column (column 2 of the 0,1,2,3 for each sample).
+        1. The event column (column 3 of the 0,1,2,3 for each sample),
+        2. All 4 columns of those in the samples_to_exclude argument.
 
     Args:
-        samples_to_exclude (sequence[int]): samples to exclude
+        n_samples (int): the number of samples in the dataset.
+        samples_to_exclude (sequence[int]): samples to exclude.
+
+    Returns:
+        A sequence of column numbers to exclude.
     """
     excluded = set()
 
-    if samples_to_exclude:
-        for test_num in samples_to_exclude:
-            for col_num in range(3):
-                excluded.add(col_num + test_num for col_num in range(3))
+    # Remove event column (every fourth column, starting at 3)
+    for col_num in range(2, n_samples, 4):
+        excluded.add(col_num)  # Time column
+        excluded.add(col_num + 1)  # Event column
 
-    # Remove event column (every third column)
-    for col_num in range(3, arr.shape[1], 3):
-        excluded.add(col_num)
+    # Remove samples_to_exclude
+    if samples_to_exclude:
+        for sample_num in samples_to_exclude:
+            for col_num in range(4):
+                excluded.add(col_num + 4 * (sample_num - 1))
+
+    return excluded
+
+
+def _ndarray_to_dataframe(ndarray, columns):
+    """Convert numpy.ndarray to pandas.DataFrame.
+
+    Args:
+        ndarray [numpy.ndarray]: array to take data from
+        columns [list(str)]: list of column names
+    """
+    dataframes = []
+
+    # Each sample is 2 columns (force and distance) so divide the
+    # shape[1] (number of columns) by 2
+    for sample in range(ndarray.shape[1] // 2):
+        df = pd.DataFrame(ndarray[:, sample], index=ndarray[:, sample + 1],
+                          columns=[columns[sample]])
+        dataframes.append(df)
+
+    # Take the first dataframe (sample) and use that to join others to
+    first = dataframes[0]
+
+    for df in dataframes[1:]:
+        first.join(df, how='outer')
+
+    return first
 
 
 def index_distance(dataframe):

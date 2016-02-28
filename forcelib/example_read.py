@@ -2,7 +2,7 @@
 
 import logging
 
-from forcelib import read_csv, _parse_args
+from forcelib import read_forces, _parse_args
 
 
 def setup_logging(level, logfile=__file__ + '.log'):
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     logger.info('Input file: {}'.format(str(args.file)))
     logger.info('Skipped tests: {}'.format(args.exclude))
 
-    forces = read_csv(str(args.file), args.exclude)
+    forces = read_forces(str(args.file), args.exclude)
 
 #    dataframes = []
 #

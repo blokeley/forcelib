@@ -4,10 +4,11 @@ import unittest
 import pathlib
 from pprint import pprint
 
+import numpy as np
 import pandas as pd
 
-from .. import forcelib
-# thing
+from ..forcelib import (_parse_args, _count_headers, _int_set, _exclude,
+                        _ndarray_to_dataframe)
 
 
 @unittest.skip
@@ -16,7 +17,7 @@ class TestParseArgs(unittest.TestCase):
     def test_path(self):
         p = r'..\test.csv'
         argv = [p]
-        args = forcelib.parse_args(argv)
+        args = _parse_args(argv)
         self.assertEqual(p, str(args.path))
 
     def test_pathlib(self):
@@ -28,8 +29,8 @@ class TestParseArgs(unittest.TestCase):
 class TestIntSet(unittest.TestCase):
 
     def test_int_set(self):
-        expected = set((1, 2, 3))
-        self.assertEqual(expected, forcelib._int_set('1,2,3'))
+        expected = {1, 2, 3}
+        self.assertEqual(expected, _int_set('1,2,3'))
 
 
 class TestCountHeaders(unittest.TestCase):
@@ -42,19 +43,47 @@ class TestCountHeaders(unittest.TestCase):
 
         for test in tests:
             with self.subTest(test=test):
-                self.assertEqual(test[0], forcelib._count_headers(test[1]))
+                self.assertEqual(test[0], _count_headers(test[1]))
 
     def test_no_integer(self):
         with self.assertRaises(ValueError):
-            forcelib._count_headers("A\nB\nC\n")
+            _count_headers("A\nB\nC\n")
+
+
+class TestNdarrayToDataframe(unittest.TestCase):
+
+    def test_ndarray_to_dataframe(self):
+        # Set up table
+        arr = np.array([[1.2, 0.0, 0.5, 0.0],
+                        [1.3, 0.1, 0.6, 0.0],
+                        [1.4, 0.2, 0.7, 0.3],
+                        [1.5, 0.5, 0.8, 0.6]])
+
+        columns = ['Sample {}'.format(i) for i in range(1, 3)]
+
+        # TODO: Create expected DataFrame
+        # expected  = pd.DataFrame([{'Sample 1': }])
+        # Run test
+        df = _ndarray_to_dataframe(arr, columns)
+
+        # self.assertEqual(expected, df)
 
 
 class TestExclude(unittest.TestCase):
 
+    def setUp(self):
+        self.n_samples = 20
+
     def test_exclude(self):
-        excluded = (1, 3, 4)
-        # TODO: Create an example array for testing
-        # arr =
+        excluded = {1, 3}
+        expected = {0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 14, 15, 18, 19}
+        self.assertEqual(expected, _exclude(self.n_samples, excluded))
+
+    def test_none(self):
+        # Assert no change if excluded is None or empty sequence
+        expected = {2, 3, 6, 7, 10, 11, 14, 15, 18, 19}
+        self.assertEqual(expected, _exclude(self.n_samples, None))
+        self.assertEqual(expected, _exclude(self.n_samples, set()))
 
 
 @unittest.skip

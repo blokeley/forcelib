@@ -118,12 +118,12 @@ def _ndarray_to_dataframe(ndarray, columns):
         dataframes.append(df)
 
     # Take the first dataframe (sample) and use that to join others to
-    first = dataframes[0]
+    combined = dataframes[0]
 
     for df in dataframes[1:]:
-        first.join(df, how='outer')
+        combined = combined.join(df, how='outer')
 
-    return first
+    return combined
 
 
 def index_distance(dataframe):

@@ -1,4 +1,4 @@
-"""Unit tests for forcelib.py"""
+"""Unit tests for forcelib.py."""
 
 import unittest
 import pathlib
@@ -39,7 +39,8 @@ class TestCountHeaders(unittest.TestCase):
         # Tests defined as expected number, input text
         tests = (
             (3, "A\nB\nC\n0\n"),
-            (4, "A\nB\nC\nD\n0\n"))
+            (4, "A\nB\nC\nD\n0\n"),
+            (4, "A\nB\n\nD\n0\n"))
 
         for test in tests:
             with self.subTest(test=test):

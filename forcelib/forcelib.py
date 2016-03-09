@@ -101,29 +101,25 @@ def _exclude(n_samples, samples_to_exclude=None):
     return excluded
 
 
-def _ndarray_to_dataframe(ndarray, columns):
-    """Convert numpy.ndarray to pandas.DataFrame.
+def _to_list_of_series(ndarray, sample_names):
+    """Convert numpy.ndarray to list of `pandas.Series`.
 
     Args:
-        ndarray [numpy.ndarray]: array to take data from
-        columns [list(str)]: list of column names
+        ndarray [numpy.ndarray]: array to take data from.
+        sample_names [list(str)]: list of sample names.
+
+    Returns:
+        list(pandas.Series): list of Series of force-distance results.
     """
-    dataframes = []
+    list_of_series = []
 
-    # Each sample is 2 columns (force and distance) so divide the
-    # shape[1] (number of columns) by 2
-    for sample in range(ndarray.shape[1] // 2):
-        df = pd.DataFrame(ndarray[:, sample], index=ndarray[:, sample + 1],
-                          columns=[columns[sample]])
-        dataframes.append(df)
+    for sample in range(0, ndarray.shape[1] // 2, 2):
+        series = pd.Series(ndarray[:, sample], ndarray[:, sample + 1],
+                           name=[sample_names[sample]])
+        series.index.name = 'Distance (mm)'
+        list_of_series.append(series)
 
-    # Take the first dataframe (sample) and use that to join others to
-    combined = dataframes[0]
-
-    for df in dataframes[1:]:
-        combined = combined.join(df, how='outer')
-
-    return combined
+    return list_of_series
 
 
 def index_distance(dataframe):
@@ -149,7 +145,7 @@ def work(dataframe, column, xmin=-np.inf, xmax=np.inf):
     xmax (float): maximum displacement (exclusive)
     """
     raise NotImplementedError('Needs unit tests')
-    view = dataframe[(dataframe.index >= xmin) & (dataframe.index < xmax)]
+
     return np.trapz(view[column], view.index)
 
 

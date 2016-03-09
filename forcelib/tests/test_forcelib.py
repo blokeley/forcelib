@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from ..forcelib import (_parse_args, _count_headers, _int_set, _exclude,
-                        _ndarray_to_dataframe)
+                        _to_list_of_series)
 
 
 @unittest.skip
@@ -51,23 +51,31 @@ class TestCountHeaders(unittest.TestCase):
             _count_headers("A\nB\nC\n")
 
 
-class TestNdarrayToDataframe(unittest.TestCase):
+class TestToListOfSeries(unittest.TestCase):
 
-    def test_ndarray_to_dataframe(self):
+    def test_to_list_of_series(self):
         # Set up table
         arr = np.array([[1.2, 0.0, 0.5, 0.0],
-                        [1.3, 0.1, 0.6, 0.0],
+                        [1.3, 0.3, 0.6, 0.0],
                         [1.4, 0.2, 0.7, 0.3],
                         [1.5, 0.5, 0.8, 0.6]])
 
-        columns = ['Sample {}'.format(i) for i in range(1, 3)]
+        sample_names = ['Sample {}'.format(i) for i in range(1, 3)]
 
-        # TODO: Create expected DataFrame
-        # expected  = pd.DataFrame([{'Sample 1': }])
+        expected = [pd.Series([1.2, 1.3, 1.4, 1.5], [0.0, 0.3, 0.2, 0.5],
+                              name='Sample 1'),
+                    pd.Series([0.5, 0.6, 0.7, 0.8], [0.0, 0.0, 0.3, 0.6],
+                              name='Sample 2')]
+        for series in expected:
+            series.index.name = 'Distance (mm)'
+
+        # Create the results list
+        results = _to_list_of_series(arr, sample_names)
+
         # Run test
-        df = _ndarray_to_dataframe(arr, columns)
-
-        # self.assertEqual(expected, df)
+        for exp, res in zip(expected, results):
+            with self.subTest(res=res):
+                self.assertTrue(res.equals(exp))
 
 
 class TestExclude(unittest.TestCase):

@@ -1,15 +1,17 @@
 """Utility functions for working with force data from Mecmsin tensometers."""
 
 import argparse
+from collections import OrderedDict
 import logging
 import pathlib
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 
 # Export public functions
-__all__ = ('read_forces', 'work')
+__all__ = ('read_forces', 'work', 'plot')
 __version__ = '0.1.0'
 
 
@@ -44,10 +46,13 @@ def _count_headers(csv_data):
 
 
 def read_forces(csv_filename, exclude=None):
-    """Read the CSV file and return a `pandas.DataFrame`.
+    """Read the CSV file and return a list of `pandas.Series`.
 
     The index is the distance in mm. The columns are the forces in N.
     """
+    if exclude is None:
+        exclude = []
+
     # Count number of header lines, up to 10 lines
     with open(csv_filename) as f:
         head = ''.join(next(f) for line_num in range(MAX_HEADER_ROWS))
@@ -59,18 +64,18 @@ def read_forces(csv_filename, exclude=None):
                              skip_header=n_headers)
 
     # Create column names so that sample IDs are not lost
-    columns = ['Sample {}'.format(i) for i in
-               range(1, 1 + (all_data.shape[1] / 4)) if i not in exclude]
+    sample_names = ['Sample {}'.format(i) for i in
+                    range(1, 1 + (all_data.shape[1] // 4)) if i not in exclude]
 
     # Remove unwanted columns and unwanted samples (tests)
     excluded = _exclude(all_data.shape[1], exclude)
     forces = np.delete(all_data, list(excluded), axis=1)
 
     # Convert ndarray to DataFrame
-    return _ndarray_to_dataframe(forces, columns)
+    return _to_list_of_series(forces, sample_names)
 
 
-def _exclude(n_samples, samples_to_exclude=None):
+def _exclude(n_columns, samples_to_exclude=None):
     """Return a sequence of column numbers to exclude.
 
     The returned sequence lists:
@@ -79,7 +84,7 @@ def _exclude(n_samples, samples_to_exclude=None):
         2. All 4 columns of those in the samples_to_exclude argument.
 
     Args:
-        n_samples (int): the number of samples in the dataset.
+        n_columns (int): the number of columns in the dataset.
         samples_to_exclude (sequence[int]): samples to exclude.
 
     Returns:
@@ -88,7 +93,7 @@ def _exclude(n_samples, samples_to_exclude=None):
     excluded = set()
 
     # Remove event column (every fourth column, starting at 3)
-    for col_num in range(2, n_samples, 4):
+    for col_num in range(2, n_columns, 4):
         excluded.add(col_num)  # Time column
         excluded.add(col_num + 1)  # Event column
 
@@ -113,40 +118,58 @@ def _to_list_of_series(ndarray, sample_names):
     """
     list_of_series = []
 
-    for sample in range(0, ndarray.shape[1] // 2, 2):
-        series = pd.Series(ndarray[:, sample], ndarray[:, sample + 1],
-                           name=[sample_names[sample]])
+    for sample in range(ndarray.shape[1] // 2):
+        series = pd.Series(ndarray[:, 2 * sample], ndarray[:, (2 * sample) + 1],
+                           name=sample_names[sample])
         series.index.name = 'Distance (mm)'
         list_of_series.append(series)
 
     return list_of_series
 
 
-def index_distance(dataframe):
-    """Transform the DataFrame to have distances as the index.
-
-    The dataframe should be in the CSV format exported by Mecmesin Emperor
-    software. Namely, colums of [force, distance, time, event]. time and
-    event are unused.
-
-    """
-    raise NotImplemented
-
-
-def work(dataframe, column, xmin=-np.inf, xmax=np.inf):
+def work(list_of_series, xmin=-np.inf, xmax=np.inf):
     """Calculate the work done in Joules.
 
     Work done is the area under the force-displacement curve.
 
     Args:
-    dataframe (DataFrame): dataframe to work on
-    column (str): column name
-    xmin (float): minimum displacement (inclusive)
-    xmax (float): maximum displacement (exclusive)
+        list_of_series (list[pandas.Series]): list of Series to process.
+        xmin (float): minimum displacement (inclusive).
+        xmax (float): maximum displacement (exclusive).
     """
     raise NotImplementedError('Needs unit tests')
+    work_done = OrderedDict()
 
-    return np.trapz(view[column], view.index)
+    for series in list_of_series:
+        work_done[series.name] = np.trapz(series, series.index)
+
+    return work_done
+
+
+def plot(list_of_series, axes=None, title=None):
+    """Plot series on new figure, or on axes if given.
+
+    Args:
+        list_of_series (list[pandas.Series]): series to plot.
+        axes (matplotlib.axes.Axes): axes to use.
+        title (str): title of plot.
+
+    Returns:
+        matplotlib.axes.Axes: axes of plot.
+    """
+    if not axes:
+        fig, axes = plt.subplots()
+
+    for series in list_of_series:
+        axes.plot(series.index, series, label=series.name)
+
+    axes.legend(loc='best')
+    axes.set_xlabel('Distance (mm)')
+
+    if title is not None:
+        axes.set_title(title)
+
+    return axes
 
 
 def _int_set(arg):

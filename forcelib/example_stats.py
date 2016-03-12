@@ -1,20 +1,20 @@
-"""Read forces from .csv file and perform basic stats."""
+"""Read forces from .csv file and perform basic stats.
 
-import logging
+To see command line options, run:
+python example_stats.py --help
+"""
 
 import matplotlib.pyplot as plt
 
 from forcelib import read_forces, plot, _parse_args
 
 if __name__ == '__main__':
-    """Main program."""
+    # Read command line arguments
     args = _parse_args(__doc__)
 
-    # Set up logging
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    logger.info('Input file: {}'.format(str(args.file)))
-    logger.info('Skipped tests: {}'.format(args.exclude))
+    # Print the command line arguments
+    print('Input file: {}'.format(str(args.file)))
+    print('Skipped tests: {}'.format(args.exclude))
 
     # Read the CSV data into a list of pandas.Series
     forces = read_forces(str(args.file), args.exclude)
@@ -31,11 +31,12 @@ if __name__ == '__main__':
     plt.show()
 
     # Describe basic statistics for the first sample in the list
+    # Note that the first element in a Python list has index 0
     print()  # newline for clarity
     print(first5mm[0].describe())
     print()  # newline for clarity
 
-    # Describe just one metric for the second sample in the list
+    # Describe just the mean of the second sample in the list
     # :.3f means format the floating point number to 3 decimal places
     print('{} mean = {:.3f}'.format(first5mm[1].name, first5mm[1].mean()))
 

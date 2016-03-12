@@ -48,7 +48,7 @@ def _count_headers(csv_data):
 def read_forces(csv_filename, exclude=None):
     """Read the CSV file and return a list of `pandas.Series`.
 
-    The index is the distance in mm. The columns are the forces in N.
+    The index is the displacement in mm. The columns are the forces in N.
     """
     if exclude is None:
         exclude = []
@@ -114,14 +114,14 @@ def _to_list_of_series(ndarray, sample_names):
         sample_names [list(str)]: list of sample names.
 
     Returns:
-        list(pandas.Series): list of Series of force-distance results.
+        list(pandas.Series): list of Series of force-displacement results.
     """
     list_of_series = []
 
     for sample in range(ndarray.shape[1] // 2):
         series = pd.Series(ndarray[:, 2 * sample], ndarray[:, (2 * sample) + 1],
                            name=sample_names[sample])
-        series.index.name = 'Distance (mm)'
+        series.index.name = 'Displacement (mm)'
         list_of_series.append(series)
 
     return list_of_series
@@ -164,7 +164,7 @@ def plot(list_of_series, axes=None, title=None):
         axes.plot(series.index, series, label=series.name)
 
     axes.legend(loc='best')
-    axes.set_xlabel('Distance (mm)')
+    axes.set_xlabel('Displacement (mm)')
 
     if title is not None:
         axes.set_title(title)

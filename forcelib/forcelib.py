@@ -119,7 +119,8 @@ def _to_list_of_series(ndarray, sample_names):
     list_of_series = []
 
     for sample in range(ndarray.shape[1] // 2):
-        series = pd.Series(ndarray[:, 2 * sample], ndarray[:, (2 * sample) + 1],
+        series = pd.Series(ndarray[:, 2 * sample],
+                           ndarray[:, (2 * sample) + 1],
                            name=sample_names[sample])
         series.index.name = 'Displacement (mm)'
         list_of_series.append(series)
@@ -127,23 +128,18 @@ def _to_list_of_series(ndarray, sample_names):
     return list_of_series
 
 
-def work(list_of_series, xmin=-np.inf, xmax=np.inf):
+def work(series, xmin=-np.inf, xmax=np.inf):
     """Calculate the work done in Joules.
 
     Work done is the area under the force-displacement curve.
 
     Args:
-        list_of_series (list[pandas.Series]): list of Series to process.
+        series (pandas.Series): Series of force-displacement results.
         xmin (float): minimum displacement (inclusive).
         xmax (float): maximum displacement (exclusive).
     """
-    raise NotImplementedError('Needs unit tests')
-    work_done = OrderedDict()
-
-    for series in list_of_series:
-        work_done[series.name] = np.trapz(series, series.index)
-
-    return work_done
+    view = series[(series.index >= xmin) & (series.index < xmax)]
+    return np.trapz(view, view.index) / 1000
 
 
 def plot(list_of_series, axes=None, title=None):
@@ -165,6 +161,7 @@ def plot(list_of_series, axes=None, title=None):
 
     axes.legend(loc='best')
     axes.set_xlabel('Displacement (mm)')
+    axes.set_ylabel('Force (N)')
 
     if title is not None:
         axes.set_title(title)

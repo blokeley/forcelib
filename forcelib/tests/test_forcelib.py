@@ -2,13 +2,12 @@
 
 import unittest
 import pathlib
-from pprint import pprint
 
 import numpy as np
 import pandas as pd
 
 from ..forcelib import (_parse_args, _count_headers, _int_set, _exclude,
-                        _to_list_of_series)
+                        _to_list_of_series, work)
 
 
 @unittest.skip
@@ -95,27 +94,15 @@ class TestExclude(unittest.TestCase):
         self.assertEqual(expected, _exclude(self.n_samples, set()))
 
 
-@unittest.skip
-class TestIndexDistance(unittest.TestCase):
+class TestWork(unittest.TestCase):
 
-    def setUp(self):
-        self.data = []
+    def test_work(self):
+        arr = np.array([[1.2, 0.0, 0.5, 0.0],
+                        [1.3, 0.3, 0.6, 0.0],
+                        [1.4, 0.2, 0.7, 0.3],
+                        [1.5, 0.5, 0.8, 0.6]])
 
-        for row in range(10):
-            for testnum in range(4):
-                d = {'force{}'.format(testnum): row * testnum,
-                     'distance{}'.format(testnum): 2.3 + row,
-                     'time{}'.format(testnum): row + testnum,
-                     'event{}'.format(testnum): 0}
-                self.data.append(d)
+        sample_names = ['Sample {}'.format(i) for i in range(1, 3)]
+        forces = _to_list_of_series(arr, sample_names)
 
-        pprint(self.data)
-
-        self.df = pd.DataFrame(self.data)
-        print(self.df)
-
-    def test_reindex(self):
-        pass
-
-if __name__ == '__main__':
-    unittest.main()
+        self.assertAlmostEqual(0.675e-3, work(forces[0]))

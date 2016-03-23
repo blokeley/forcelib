@@ -1,7 +1,6 @@
 """Utility functions for working with force data from Mecmsin tensometers."""
 
 import argparse
-from collections import OrderedDict
 import logging
 import pathlib
 
@@ -12,7 +11,6 @@ import pandas as pd
 
 # Export public functions
 __all__ = ('read_forces', 'work', 'plot')
-__version__ = '0.1.0'
 
 
 MAX_HEADER_ROWS = 10

@@ -6,7 +6,7 @@ https://github.com/pypa/sampleproject
 """
 
 # Always prefer setuptools over distutils
-from setuptools import setup, find_packages
+from setuptools import setup
 # To use a consistent encoding
 from codecs import open
 from os import path
@@ -36,7 +36,7 @@ setup(
 
     # Author details
     author='blokeley',
-    #author_email='john@example.com',
+    # author_email='john@example.com',
 
     # Choose your license
     license='MIT',
@@ -75,7 +75,8 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    # packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    py_modules=['forcelib'],
 
     # Alternatively, if you want to distribute just a my_module.py, uncomment
     # this:

@@ -10,8 +10,8 @@ import pandas as pd
 
 
 # Export public functions
-__all__ = ('read_forces', 'work', 'plot')
-__version__ = '0.1.2'
+__all__ = ('read_forces', 'work', 'plot', '_parse_args')
+
 
 MAX_HEADER_ROWS = 10
 """Maximum number of header rows to search for start of data."""

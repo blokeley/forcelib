@@ -6,8 +6,8 @@ import pathlib
 import numpy as np
 import pandas as pd
 
-from forcelib import (_parse_args, _count_headers, _int_set, _exclude,
-                      _to_list_of_series, work)
+from ..forcelib import (_parse_args, _count_headers, _int_set, _exclude,
+                        _to_list_of_series, work)
 
 
 @unittest.skip

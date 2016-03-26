@@ -1,2 +1,4 @@
-__all__ = ['forcelib']
-__version__ = '0.1.2'
+from .forcelib import *
+from .forcelib import __all__
+
+__version__ = '0.1.b'

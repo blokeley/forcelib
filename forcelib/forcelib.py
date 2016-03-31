@@ -23,7 +23,7 @@ def _count_headers(csv_data):
     Header rows are defined by not starting with an integer.
 
     Raises:
-    ValueError: if no line starting with an integer is found.
+        ValueError: if no line starting with an integer is found.
     """
     for line_num, line in enumerate(csv_data.splitlines()):
         try:
@@ -44,9 +44,14 @@ def _count_headers(csv_data):
 
 
 def read_csv(csv_filename, exclude=None):
-    """Read the CSV file and return a list of `pandas.Series`.
+    """Read the CSV file and return a multi-index DataFrame.
 
-    The index is the displacement in mm. The columns are the forces in N.
+    Args:
+        csv_filename (str or file pointer): CSV file from Emperor.
+        exclude (list[int]): List of test numbers to exclude.  1-indexed.
+
+    Returns:
+        pandas.DataFrame: See documentation for _to_dataframe().
     """
     if exclude is None:
         exclude = []
@@ -128,7 +133,7 @@ def _to_dataframe(ndarray, test_names=None):
     # CSV file)
     df_all.dropna(inplace=True)
 
-    # Convert events to integers
+    # Convert events to booleans
     df_all['event'] = df_all['event'].astype(bool)
 
     return df_all
@@ -154,7 +159,7 @@ def work(df, xmin=None, xmax=None):
 
     works = pd.Series(name='work')
 
-    for name, group in view.groupby(level=0):
+    for name, group in view.groupby(level='test'):
         works[name] = np.trapz(group['force'], group['displacement']) / 1000
 
     return works
@@ -196,6 +201,14 @@ def _parse_args(description=None, args=None):
     """Convenience function to parse command line arguments.
 
     This function may be removed in future versions of forcelib.
+
+    Args:
+        description (str): Description of the program.
+        args (list): Command line arguments to parse.  Defaults to reading from
+            sys.argv.
+
+    Returns:
+        argparse.Namespace: Namespace object containing arguments.
     """
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('file', type=pathlib.Path, help='CSV file')

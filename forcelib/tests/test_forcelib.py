@@ -10,14 +10,12 @@ from ..forcelib import (_parse_args, _count_headers, _int_set, _exclude,
                         _to_dataframe, work)
 
 
-@unittest.skip
 class TestParseArgs(unittest.TestCase):
 
     def test_path(self):
         p = r'..\test.csv'
-        argv = [p]
-        args = _parse_args(argv)
-        self.assertEqual(p, str(args.path))
+        args = _parse_args(args=[p])
+        self.assertEqual(p, str(args.file))
 
     def test_pathlib(self):
         p = r'..\test.csv'

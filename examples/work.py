@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-from forcelib import read_forces, plot, work, _parse_args
+from forcelib import read_csv, plot_force_v_displacement, work, _parse_args
 
 if __name__ == '__main__':
     # Read command line arguments
@@ -19,24 +19,25 @@ if __name__ == '__main__':
     print('Skipped tests: {}'.format(args.exclude))
 
     # Read the CSV data into a list of pandas.Series
-    forces = read_forces(str(args.file), args.exclude)
+    forces = read_csv(str(args.file), args.exclude)
 
     # Select the 1 to 5 mm of displacement
-    # s.index is the array of displacement.  We select only the rows where
-    # displacement < 5 by using s[s.index < 5]
-    forces_1to5mm = [s[(s.index >= 1) & (s.index < 5)] for s in forces]
-    plot(forces_1to5mm)
-    plt.show()
+    forces_1to5mm = forces[(forces['displacement'] >= 1) &
+                           (forces['displacement'] < 5)]
 
-    # Calculate the work for each series (test)
-    # Note that the first element in a Python list has index 0
-    works = [work(series) for series in forces_1to5mm]
+    print(forces_1to5mm)
+    # Calculate the work for each test
+    works = work(forces_1to5mm)
 
-    index = np.arange(len(forces_1to5mm))
+    print(type(works))
+    print(works)
 
-    plt.bar(index, works)
-    plt.xticks(index + 0.5, [series.name for series in forces_1to5mm],
-               rotation=45)
-    plt.ylabel('Work done (J)')
-    plt.tight_layout()
+    # works.plot(kind='bar')
+    # index = np.arange(len(forces_1to5mm))
+
+    # plt.bar(index, works)
+    # plt.xticks(index + 0.5, [series.name for series in forces_1to5mm],
+               # rotation=45)
+    # plt.ylabel('Work done (J)')
+    # plt.tight_layout()
     plt.show()

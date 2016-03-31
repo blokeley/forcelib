@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from ..forcelib import (_parse_args, _count_headers, _int_set, _exclude,
-                        _to_list_of_series, work)
+                        _to_dataframe, work)
 
 
 @unittest.skip
@@ -50,59 +50,59 @@ class TestCountHeaders(unittest.TestCase):
             _count_headers("A\nB\nC\n")
 
 
-class TestToListOfSeries(unittest.TestCase):
+class TestArrayFunctions(unittest.TestCase):
 
-    def test_to_list_of_series(self):
+    def setUp(self):
         # Set up table
-        arr = np.array([[1.2, 0.0, 0.5, 0.0],
-                        [1.3, 0.3, 0.6, 0.0],
-                        [1.4, 0.2, 0.7, 0.3],
-                        [1.5, 0.5, 0.8, 0.6]])
+        self.arr = np.array([[1.2, 0., 0.1, 0, 0.8, 0, 0.1, 1],
+                             [1.3, 0.3, 0.2, 1, 0.5, 0, 0.25, 1],
+                             [1.4, 0.2, 0.3, 0, 0.7, 0.3, 0.3, 1],
+                             [1.5, 0.5, 0.4, 1, 0.8, 0.2, 0.4, 0],
+                             [1.6, 0.5, 0.45, 0, np.nan, np.nan, np.nan,
+                              np.nan]])
 
-        sample_names = ['Sample {}'.format(i) for i in range(1, 3)]
+    def test_to_dataframe(self):
+        test_names = ['Test {}'.format(i) for i in range(1, 3)]
 
-        expected = [pd.Series([1.2, 1.3, 1.4, 1.5], [0.0, 0.3, 0.2, 0.5],
-                              name='Sample 1'),
-                    pd.Series([0.5, 0.6, 0.7, 0.8], [0.0, 0.0, 0.3, 0.6],
-                              name='Sample 2')]
-        for series in expected:
-            series.index.name = 'Distance (mm)'
+        frames = [pd.DataFrame({'force':  [1.2, 1.3, 1.4, 1.5, 1.6],
+                                'displacement': [0.0, 0.3, 0.2, 0.5, 0.5],
+                                'event': [False, True, False, True, False]},
+                               index=[0.1, 0.2, 0.3, 0.4, 0.45]),
+                  pd.DataFrame({'force': [0.8, 0.5, 0.7, 0.8],
+                                'displacement': [0.0, 0.0, 0.3, 0.2],
+                                'event':[True, True, True, False]},
+                               index=[0.1, 0.25, 0.3, 0.4])]
 
-        # Create the results list
-        results = _to_list_of_series(arr, sample_names)
+        expected = pd.concat(frames, keys=test_names)
+        expected.index.names = ('test', 'time')
+
+        # Create the results DataFrame
+        result = _to_dataframe(self.arr, test_names)
 
         # Run test
-        for exp, res in zip(expected, results):
-            with self.subTest(res=res):
-                self.assertTrue(res.equals(exp))
+        self.assertTrue(result.equals(expected))
+
+    def test_work(self):
+        expected = pd.Series((0.675e-3, 0.105e-3),
+                             index=('Test 1', 'Test 2'),
+                             name='test')
+
+        df = _to_dataframe(self.arr)
+        # Assert equal to 3 decimal places
+        self.assertTrue(work(df).equals(expected))
 
 
 class TestExclude(unittest.TestCase):
 
     def setUp(self):
-        self.n_samples = 20
+        self.n_tests = 20
 
     def test_exclude(self):
         excluded = {1, 3}
-        expected = {0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 14, 15, 18, 19}
-        self.assertEqual(expected, _exclude(self.n_samples, excluded))
+        expected = {0, 1, 2, 3, 8, 9, 10, 11}
+        self.assertEqual(expected, _exclude(self.n_tests, excluded))
 
     def test_none(self):
         # Assert no change if excluded is None or empty sequence
-        expected = {2, 3, 6, 7, 10, 11, 14, 15, 18, 19}
-        self.assertEqual(expected, _exclude(self.n_samples, None))
-        self.assertEqual(expected, _exclude(self.n_samples, set()))
-
-
-class TestWork(unittest.TestCase):
-
-    def test_work(self):
-        arr = np.array([[1.2, 0.0, 0.5, 0.0],
-                        [1.3, 0.3, 0.6, 0.0],
-                        [1.4, 0.2, 0.7, 0.3],
-                        [1.5, 0.5, 0.8, 0.6]])
-
-        sample_names = ['Sample {}'.format(i) for i in range(1, 3)]
-        forces = _to_list_of_series(arr, sample_names)
-
-        self.assertAlmostEqual(0.675e-3, work(forces[0]))
+        self.assertEqual(set(), _exclude(self.n_tests, None))
+        self.assertEqual(set(), _exclude(self.n_tests, set()))

@@ -6,7 +6,7 @@ python example_read.py --help
 
 import matplotlib.pyplot as plt
 
-from forcelib import read_forces, plot, _parse_args
+from forcelib import read_csv, plot_force_v_displacement, _parse_args
 
 if __name__ == '__main__':
     # Read command line arguments
@@ -17,8 +17,8 @@ if __name__ == '__main__':
     print('Skipped tests: {}'.format(args.exclude))
 
     # Read the CSV data into a list of pandas.Series
-    forces = read_forces(str(args.file), args.exclude)
+    forces = read_csv(str(args.file), args.exclude)
 
     # Plot the forces
-    plot(forces)
+    plot_force_v_displacement(forces)
     plt.show()

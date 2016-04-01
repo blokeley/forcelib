@@ -139,27 +139,20 @@ def _to_dataframe(ndarray, test_names=None):
     return df_all
 
 
-def work(df, xmin=None, xmax=None):
+def work(df):
     """Calculate the work done in Joules.
 
     Work done is the area under the force-displacement curve.
 
     Args:
         df (pandas.DataFrame): DataFrame of force-displacement results.
-        xmin (float): minimum displacement (inclusive).
-        xmax (float): maximum displacement (inclusive).
+
+    Returns:
+        pandas.Series: Work done in Joules, with index of test names.
     """
-    xmin = xmin if xmin is not None else df['displacement'].min()
-    xmax = xmax if xmax is not None else df['displacement'].max()
-
-    # slice(None) means select all from index 0.
-    # slice(xmin, xmax) selects from index 1.
-    # The ', :' at the end means select all columns
-    view = df.loc[(slice(None), slice(xmin, xmax)), :]
-
     works = pd.Series(name='work')
 
-    for name, group in view.groupby(level='test'):
+    for name, group in df.groupby(level='test'):
         works[name] = np.trapz(group['force'], group['displacement']) / 1000
 
     return works

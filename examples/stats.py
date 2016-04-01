@@ -16,7 +16,7 @@ if __name__ == '__main__':
     print('Input file: {}'.format(str(args.file)))
     print('Skipped tests: {}'.format(args.exclude))
 
-    # Read the CSV data into a list of pandas.Series
+    # Read the CSV data into a pandas.DataFrame
     forces = read_csv(str(args.file), args.exclude)
 
     # Plot the forces

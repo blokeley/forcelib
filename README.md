@@ -49,7 +49,7 @@ To update:
 
 ## Quick-and-dirty method
 
-1. Copy https://github.com/blokeley/forcelib/blob/master/forcelib/forcelib.py
+1. Copy https://raw.githubusercontent.com/blokeley/forcelib/master/forcelib/forcelib.py
    to the directory in which you will be working
 
 If there is much demand from other users, I would consider uploading the
@@ -62,5 +62,5 @@ See the [example programs](examples).
 
 # Licence
 
-This package is licensed under the MIT licence.  See the [LICENCE](LICENCE) file
+This package is licensed under the MIT licence.  See the [LICENSE](LICENSE) file
 for further details.

@@ -10,7 +10,8 @@ import pandas as pd
 
 
 # Export public functions
-__all__ = ('read_csv', 'work', 'plot_force_v_displacement', '_parse_args')
+__all__ = ('read_csv', 'work', 'plot_force_v_displacement', 'plot_v_time',
+           '_parse_args')
 
 
 MAX_HEADER_ROWS = 10
@@ -51,7 +52,10 @@ def read_csv(csv_filename, exclude=None):
         exclude (list[int]): List of test numbers to exclude.  1-indexed.
 
     Returns:
-        pandas.DataFrame: See documentation for _to_dataframe().
+        pandas.DataFrame: Columns are 'displacement (mm)',
+                                      'force (N)', and
+                                      'event (boolean)'.
+                          Index is (test_name, time (minutes))
     """
     if exclude is None:
         exclude = []
@@ -120,7 +124,7 @@ def _to_dataframe(ndarray, test_names=None):
     frames = []
 
     for test in range(ndarray.shape[1] // 4):
-        frame = pd.DataFrame({'force':  ndarray[:, 4 * test],
+        frame = pd.DataFrame({'force':  ndarray[:, 4 * test],  # Force (N)
                               'displacement': ndarray[:, (4 * test) + 1],
                               'event': ndarray[:, (4 * test) + 3]},  # Event
                              index=ndarray[:, (4 * test) + 2])  # Time
@@ -157,7 +161,7 @@ def work(df):
 
 
 def plot_force_v_displacement(df, title=None, ax=None):
-    """Plot series on new figure, or on axes if given.
+    """Plot force versus displacement on new figure, or on axes if given.
 
     Args:
         df (pandas.DataFrame): DataFrame to plot.
@@ -181,6 +185,40 @@ def plot_force_v_displacement(df, title=None, ax=None):
         ax.set_title(title)
 
     return ax
+
+
+def plot_v_time(df, title=None):
+    """Plot force and  displacement versus time on new figure, or on axes
+    if given.
+
+    Why not just use `df.groupby(level='test').plot(subplots=True)`?  Because:
+
+    1. The x labels are given as tuples like (Test 2, 0.00833) which is
+       difficult to read.
+    2. There is one figure for each test, which is unmanageable for large
+       numbers of tests.
+
+    Args:
+        df (pandas.DataFrame): DataFrame to plot.
+        title (str): Title of plot.
+
+    Returns:
+        matplotlib.figure.Figure: Figure of plot.
+    """
+    fig, ax_arr = plt.subplots(3, sharex=True)
+
+    for name, group in df.groupby(level='test'):
+        ax_arr[0].plot(df.loc[name].index, group['event'], label=name)
+        ax_arr[1].plot(df.loc[name].index, group['force'], label=name)
+        ax_arr[2].plot(df.loc[name].index, group['displacement'], label=name)
+
+    ax_arr[0].legend(loc='best')
+    ax_arr[0].set_ylabel('Event')
+    ax_arr[1].set_ylabel('Force N)')
+    ax_arr[2].set_ylabel('Displacement (mm)')
+    ax_arr[2].set_xlabel('Time (minutes)')
+
+    return fig
 
 
 def _int_set(arg):

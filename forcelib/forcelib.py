@@ -150,12 +150,10 @@ def work(df):
     Returns:
         pandas.Series: Work done in Joules, with index of test names.
     """
-    works = pd.Series(name='work')
+    def _work(df):
+        return np.trapz(df['force'], df['displacement']) / 1000
 
-    for name, group in df.groupby(level='test'):
-        works[name] = np.trapz(group['force'], group['displacement']) / 1000
-
-    return works
+    return df.groupby(level='test').apply(_work)
 
 
 def plot_force_v_displacement(df, title=None, ax=None):

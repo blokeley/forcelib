@@ -20,12 +20,12 @@ if __name__ == '__main__':
     forces = read_csv(str(args.file), args.exclude)
 
     # Plot the forces
-    plot_force_v_displacement(forces)
+    plot_force_v_displacement(forces, 'All displacements')
     plt.show()
 
     # Select the first 5 mm of displacement
     first5mm = forces[forces['displacement'] < 5]
-    plot_force_v_displacement(first5mm)
+    plot_force_v_displacement(first5mm, 'First 5 mm')
     plt.show()
 
     # Describe summary statistics for all tests
@@ -34,6 +34,14 @@ if __name__ == '__main__':
     print()  # newline for clarity
 
     # Print mean force for Test 2
-    print('Summary stats for Test 2')
-    print(first5mm.loc['Test 2'].mean())
+    print('Mean force for Test 2')
+    print(first5mm.loc['Test 2']['force'].mean())
     print()  # newline for clarity
+
+    # If you really want to select the second test by number
+    # rather than name, you could try the following.  The
+    # [0] selects the first level index (test names) and [1]
+    # means selects the second test name.  You could select  Test 2 to Test 5
+    # inclusive using
+    # tests2to5 = first5mm.loc[first5mm.index.levels[0][1] :
+    #                          first5mm.index.levels[0][4]]

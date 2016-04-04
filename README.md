@@ -72,6 +72,8 @@ You can run them by typing at the command line a variant like:
 - [work.py](examples/work.py) Calculate the work done (integral of force with
   respect to displacement) during each test.
 
+- [plot.py](examples/plot.py) Plot events, forces, displacements versus time.
+
 # Licence
 
 This package is licensed under the MIT licence.  See the [LICENSE](LICENSE)

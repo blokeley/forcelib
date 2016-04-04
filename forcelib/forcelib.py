@@ -55,7 +55,7 @@ def read_csv(csv_filename, exclude=None):
         pandas.DataFrame: Columns are 'displacement (mm)',
                                       'force (N)', and
                                       'event (boolean)'.
-                          Index is (test_name, time (minutes))
+                          Index is (test_name, time (s))
     """
     if exclude is None:
         exclude = []
@@ -127,7 +127,8 @@ def _to_dataframe(ndarray, test_names=None):
         frame = pd.DataFrame({'force':  ndarray[:, 4 * test],  # Force (N)
                               'displacement': ndarray[:, (4 * test) + 1],
                               'event': ndarray[:, (4 * test) + 3]},  # Event
-                             index=ndarray[:, (4 * test) + 2])  # Time
+                             # Multiply by 60 to convert minutes to seconds
+                             index=ndarray[:, (4 * test) + 2] * 60)  # Time
         frames.append(frame)
 
     df_all = pd.concat(frames, keys=test_names)
@@ -216,7 +217,7 @@ def plot_v_time(df, title=None):
     ax_arr[0].set_ylabel('Event')
     ax_arr[1].set_ylabel('Force N)')
     ax_arr[2].set_ylabel('Displacement (mm)')
-    ax_arr[2].set_xlabel('Time (minutes)')
+    ax_arr[2].set_xlabel('Time (s)')
 
     return fig
 

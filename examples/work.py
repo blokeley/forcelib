@@ -1,7 +1,7 @@
 """Read forces from .csv file and calculate work done.
 
 To see command line options, run:
-python example_work.py --help
+python work.py --help
 """
 
 import matplotlib.pyplot as plt

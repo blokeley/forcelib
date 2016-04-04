@@ -1,7 +1,7 @@
 """Read forces from .csv file.
 
 To see command line options, run:
-python example_read.py --help
+python read.py --help
 """
 
 import matplotlib.pyplot as plt

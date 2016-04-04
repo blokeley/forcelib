@@ -57,10 +57,22 @@ package to PyPI.
 
 # Usage
 
-See the [example programs](examples).
+See the [example programs](examples):
 
+You can run them by typing at the command line a variant like:
+
+`python read.py example_forces_big.csv`
+
+- [read.py](examples/read.py) This is the simplest example.  It reads the
+  given CSV file and plots the forces versus displacement.
+
+- [stats.py](examples/stats.py) Select a sub-set of the displacement results
+  and calculate certain statistics.
+
+- [work.py](examples/work.py) Calculate the work done (integral of force with
+  respect to displacement) during each test.
 
 # Licence
 
-This package is licensed under the MIT licence.  See the [LICENSE](LICENSE) file
-for further details.
+This package is licensed under the MIT licence.  See the [LICENSE](LICENSE)
+[sic] file for further details.

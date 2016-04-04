@@ -1,7 +1,7 @@
 """Read forces from .csv file and perform basic stats.
 
 To see command line options, run:
-python example_stats.py --help
+python stats.py --help
 """
 
 import matplotlib.pyplot as plt
@@ -28,22 +28,12 @@ if __name__ == '__main__':
     plot_force_v_displacement(first5mm)
     plt.show()
 
-    # Describe basic statistics for the first test by name
-    print('Summary stats for Test 1')
-    print(first5mm.loc['Test 1'].describe())
-    print()  # newline for clarity
-
     # Describe summary statistics for all tests
     print('Summary stats for all tests')
     print(first5mm.groupby(level='test').describe())
-    print()
+    print()  # newline for clarity
 
-    # Describe just the mean of the second sample in the list
-    # :.3f means format the floating point number to 3 decimal places
-    name, group = list(first5mm.groupby(level=0))[1]
-    print('{} mean = {:.3f}'.format(name, group['force'].mean()))
-
-    # Select only forces below 6 Newtons
-    below6N = first5mm[first5mm['force'] < 6]
-    plot_force_v_displacement(below6N)
-    plt.show()
+    # Print mean force for Test 2
+    print('Summary stats for Test 2')
+    print(first5mm.loc['Test 2'].mean())
+    print()  # newline for clarity

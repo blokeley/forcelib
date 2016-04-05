@@ -1,7 +1,6 @@
 """Utility functions for working with force data from Mecmsin tensometers."""
 
 import argparse
-import logging
 import pathlib
 
 import matplotlib.pyplot as plt
@@ -28,7 +27,6 @@ def _count_headers(csv_data):
     """
     for line_num, line in enumerate(csv_data.splitlines()):
         try:
-            # print('{}: {}'.format(line_num, line))
             int(line[0])
             return line_num
 
@@ -166,8 +164,8 @@ def plot_force_v_displacement(df, title=None, ax=None):
 
     Args:
         df (pandas.DataFrame): DataFrame to plot.
-        title (str): Title of plot.
-        ax (matplotlib.axes.Axes): Axes to use.
+        title (str): Title of plot. Default: None.
+        ax (matplotlib.axes.Axes): Axes to use. Default: Create new axes.
 
     Returns:
         matplotlib.axes.Axes: axes of plot.
@@ -188,7 +186,7 @@ def plot_force_v_displacement(df, title=None, ax=None):
     return ax
 
 
-def plot_v_time(df, title=None):
+def plot_v_time(df, title=None, events=False):
     """Plot force and  displacement versus time on new figure, or on axes
     if given.
 
@@ -201,25 +199,37 @@ def plot_v_time(df, title=None):
 
     Args:
         df (pandas.DataFrame): DataFrame to plot.
-        title (str): Title of plot.
+        title (str): Title of plot. Default: None.
+        events (bool): Whether or not to plot events Default: False.
 
     Returns:
-        matplotlib.figure.Figure: Figure of plot.
+        list(matplotlib.axes.Axes): List of axes.
     """
-    fig, ax_arr = plt.subplots(3, sharex=True)
+    n_plots = 3 if events else 2
+    fig, ax_arr = plt.subplots(n_plots, sharex=True)
 
     for name, group in df.groupby(level='test'):
-        ax_arr[0].plot(df.loc[name].index, group['event'], label=name)
-        ax_arr[1].plot(df.loc[name].index, group['force'], label=name)
-        ax_arr[2].plot(df.loc[name].index, group['displacement'], label=name)
+        ax_arr[0].plot(df.loc[name].index, group['force'], label=name)
+        ax_arr[1].plot(df.loc[name].index, group['displacement'], label=name)
 
-    ax_arr[0].legend(loc='best')
-    ax_arr[0].set_ylabel('Event')
-    ax_arr[1].set_ylabel('Force N)')
-    ax_arr[2].set_ylabel('Displacement (mm)')
-    ax_arr[2].set_xlabel('Time (s)')
+        if events:
+            ax_arr[2].plot(df.loc[name].index, group['event'], label=name)
 
-    return fig
+    if title is not None:
+        ax_arr[0].set_title(title)
+
+    ax_arr[0].set_ylabel('Force N)')
+    ax_arr[1].set_ylabel('Displacement (mm)')
+    ax_arr[1].legend(loc='best')
+
+    if events:
+        ax_arr[2].set_ylabel('Event')
+        ax_arr[2].set_xlabel('Time (s)')
+
+    else:
+        ax_arr[1].set_xlabel('Time(s)')
+
+    return ax_arr
 
 
 def _int_set(arg):
@@ -247,5 +257,4 @@ def _parse_args(description=None, args=None):
     parser.add_argument('-x', '--exclude', type=_int_set, help=msg)
 
     namespace = parser.parse_args(args)
-    logging.debug(namespace)
     return namespace

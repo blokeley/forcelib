@@ -19,6 +19,10 @@ if __name__ == '__main__':
     # Read the CSV data into a pandas.DataFrame
     forces = read_csv(str(args.file), args.exclude)
 
-    # Plot the events, forces and displacement versus time
-    plot_v_time(forces)
+    # Plot forces and displacement versus time
+    plot_v_time(forces, str(args.file))
     plt.show()
+
+    # To plot events too, use
+    # plot_v_time(forces, str(args.file), True)
+    # plt.show()

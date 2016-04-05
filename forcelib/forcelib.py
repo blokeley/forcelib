@@ -58,7 +58,7 @@ def read_csv(csv_filename, exclude=None):
     if exclude is None:
         exclude = []
 
-    # Count number of header lines, up to 10 lines
+    # Count number of header lines, up to MAX_HEADER_ROWS
     with open(csv_filename) as f:
         head = ''.join(next(f) for line_num in range(MAX_HEADER_ROWS))
 
@@ -244,8 +244,8 @@ def _parse_args(description=None, args=None):
 
     Args:
         description (str): Description of the program.
-        args (list): Command line arguments to parse.  Defaults to reading from
-            sys.argv.
+        args (list[str]): Command line arguments to parse.  Defaults to reading
+                          from sys.argv.
 
     Returns:
         argparse.Namespace: Namespace object containing arguments.

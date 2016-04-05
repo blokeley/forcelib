@@ -1,7 +1,6 @@
 """Unit tests for forcelib.py."""
 
 import unittest
-import pathlib
 
 import numpy as np
 import pandas as pd
@@ -16,11 +15,6 @@ class TestParseArgs(unittest.TestCase):
         p = r'..\test.csv'
         args = _parse_args(args=[p])
         self.assertEqual(p, str(args.file))
-
-    def test_pathlib(self):
-        p = r'..\test.csv'
-        path = pathlib.Path(p)
-        self.assertEqual(p, str(path))
 
 
 class TestIntSet(unittest.TestCase):
@@ -65,7 +59,6 @@ class TestArrayFunctions(unittest.TestCase):
         frames = [pd.DataFrame({'force':  [1.2, 1.3, 1.4, 1.5, 1.6],
                                 'displacement': [0.0, 0.3, 0.2, 0.5, 0.5],
                                 'event': [False, True, False, True, False]},
-                               # index=[0.1, 0.2, 0.3, 0.4, 0.45]),
                                index=[6, 12, 18, 24, 27]),
                   pd.DataFrame({'force': [0.8, 0.5, 0.7, 0.8],
                                 'displacement': [0.0, 0.0, 0.3, 0.2],
@@ -87,7 +80,6 @@ class TestArrayFunctions(unittest.TestCase):
                              name='test')
 
         df = _to_dataframe(self.arr)
-        # Assert equal to 3 decimal places
         self.assertTrue(work(df).equals(expected))
 
 

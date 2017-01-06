@@ -6,7 +6,7 @@ python stats.py --help
 
 import matplotlib.pyplot as plt
 
-from forcelib import read_csv, plot_force_v_displacement, _parse_args
+from forcelib import read_csv, plot_fd, _parse_args
 
 if __name__ == '__main__':
     # Read command line arguments
@@ -20,12 +20,12 @@ if __name__ == '__main__':
     forces = read_csv(str(args.file), args.exclude)
 
     # Plot the forces
-    plot_force_v_displacement(forces, 'All displacements')
+    plot_fd(forces, 'All displacements')
     plt.show()
 
     # Select the first 5 mm of displacement
     first5mm = forces[forces['displacement'] < 5]
-    plot_force_v_displacement(first5mm, 'First 5 mm')
+    plot_fd(first5mm, 'First 5 mm')
     plt.show()
 
     # Describe summary statistics for all tests

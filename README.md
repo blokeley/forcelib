@@ -13,8 +13,8 @@ The author has no affiliation with Mecmesin.
 - Easy indexing and slicing of data, for example: by time; displacement;
   or force.  See examples in the [examples](examples) directory.
 
-- Easy plotting, even of large datasets, using `plot_force_v_displacement`
-  or custom plotting plotting functions which are easy to write.
+- Easy plotting, even of large datasets, using `plot_fd`
+  or custom plotting functions which are easy to write.
 
 - Calculation of the work done (area under the force-displacement curve)
   using the `work` function.

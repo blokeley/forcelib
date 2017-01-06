@@ -6,7 +6,7 @@ python read.py --help
 
 import matplotlib.pyplot as plt
 
-from forcelib import read_csv, plot_force_v_displacement, _parse_args
+from forcelib import read_csv, plot_fd, _parse_args
 
 if __name__ == '__main__':
     # Read command line arguments
@@ -20,5 +20,5 @@ if __name__ == '__main__':
     forces = read_csv(str(args.file), args.exclude)
 
     # Plot the forces
-    plot_force_v_displacement(forces)
+    plot_fd(forces)
     plt.show()

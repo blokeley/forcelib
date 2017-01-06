@@ -9,7 +9,7 @@ import pandas as pd
 
 
 # Export public functions
-__all__ = ('read_csv', 'work', 'plot_force_v_displacement', 'plot_v_time',
+__all__ = ('read_csv', 'work', 'plot_fd', 'plot_v_time',
            '_parse_args')
 
 
@@ -65,8 +65,7 @@ def read_csv(csv_filename, exclude=None):
     n_headers = _count_headers(head)
 
     # Read all CSV data into one big numpy.ndarray
-    all_data = np.genfromtxt(csv_filename, delimiter=',',
-                             skip_header=n_headers)
+    all_data = pd.read_csv(csv_filename, skiprows=n_headers, header=None)
 
     # Create column names so that test IDs are not lost
     test_names = ['Test {}'.format(i) for i in
@@ -74,10 +73,10 @@ def read_csv(csv_filename, exclude=None):
 
     # Remove unwanted tests
     excluded = _exclude(all_data.shape[1], exclude)
-    forces = np.delete(all_data, list(excluded), axis=1)
+    included = all_data.drop(all_data.columns[list(excluded)], axis=1)
 
-    # Convert ndarray to DataFrame
-    return _to_dataframe(forces, test_names)
+    # Convert to a usable DataFrame
+    return _to_dataframe(included, test_names)
 
 
 def _exclude(n_columns, tests_to_exclude=None):
@@ -103,37 +102,41 @@ def _exclude(n_columns, tests_to_exclude=None):
     return excluded
 
 
-def _to_dataframe(ndarray, test_names=None):
-    """Convert numpy.ndarray to multi-index `pandas.DataFrame`.
+def _to_dataframe(df, test_names=None):
+    """Convert basic DataFrame to MultiIndex DataFrame.
 
     Args:
-        ndarray [numpy.ndarray]: array to take data from.
+        df [pandas.DataFrame]: raw DataFrame from CSV.
         test_names [list(str)]: list of test names.
 
     Returns:
         pandas.DataFrame: Columns are 'displacement', 'force' and 'event'.
             Index is (test_name, time)
     """
-    if not test_names:
-        # Create test names
-        test_names = ['Test {}'.format(i) for i in
-                      range(1, 1 + (ndarray.shape[1] // 4))]
+    n_cols = df.shape[1] // 4
 
     frames = []
 
-    for test in range(ndarray.shape[1] // 4):
-        frame = pd.DataFrame({'force':  ndarray[:, 4 * test],  # Force (N)
-                              'displacement': ndarray[:, (4 * test) + 1],
-                              'event': ndarray[:, (4 * test) + 3]},  # Event
-                             # Multiply by 60 to convert minutes to seconds
-                             index=ndarray[:, (4 * test) + 2] * 60)  # Time
+    for test in range(n_cols):
+        force_col = 4 * test
+        frame = df.iloc[:, force_col:force_col + 4]
+        frame.columns = ['force', 'displacement', 'time', 'event']
+
+        # Convert minutes to seconds
+        frame['time'] = frame['time'] * 60
+
+        # Reindex on time
+        frame.set_index('time', inplace=True)
         frames.append(frame)
+
+    if not test_names:
+        # Create test names
+        test_names = ['Test {}'.format(i) for i in range(1, 1 + n_cols)]
 
     df_all = pd.concat(frames, keys=test_names)
     df_all.index.names = ('test', 'time')
 
-    # Remove rows containing NaNs (which were shorter columns in the original
-    # CSV file)
+    # Drop rows with NaNs
     df_all.dropna(inplace=True)
 
     # Convert events to booleans
@@ -159,7 +162,7 @@ def work(df):
     return df.groupby(level='test').apply(_work)
 
 
-def plot_force_v_displacement(df, title=None, ax=None):
+def plot_fd(df, title=None, ax=None):
     """Plot force versus displacement on new figure, or on axes if given.
 
     Args:

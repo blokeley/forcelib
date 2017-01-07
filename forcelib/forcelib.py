@@ -9,8 +9,7 @@ import pandas as pd
 
 
 # Export public functions
-__all__ = ('read_csv', 'work', 'plot_fd', 'plot_fdt', 'bar_fmean',
-           '_parse_args')
+__all__ = ('read_csv', 'work', 'plot', 'bar', '_parse_args')
 
 
 MAX_HEADER_ROWS = 10
@@ -157,36 +156,8 @@ def work(df):
     return df.groupby(level='test').apply(_work)
 
 
-def plot_fd(df, title=None, ax=None):
-    """Plot force versus displacement on new figure, or on axes if given.
-
-    Args:
-        df (pandas.DataFrame): DataFrame to plot.
-        title (str): Title of plot. Default: None.
-        ax (matplotlib.axes.Axes): Axes to use. Default: Create new axes.
-
-    Returns:
-        matplotlib.axes.Axes: axes of plot.
-    """
-    if ax is None:
-        fig, ax = plt.subplots()
-
-    for name, group in df.groupby(level='test'):
-        ax.plot(group['displacement'], group['force'], label=name)
-
-    ax.legend(loc='best')
-    ax.set_xlabel('Displacement (mm)')
-    ax.set_ylabel('Force (N)')
-
-    if title is not None:
-        ax.set_title(title)
-
-    return ax
-
-
-def plot_fdt(df, title=None, events=False):
-    """Plot force and  displacement versus time on new figure, or on axes
-    if given.
+def plot(df, x='displacement', y=['force'], title=None):
+    """Plot given columns (y) on new figure, or on axes ax if given.
 
     Why not just use `df.groupby(level='test').plot(subplots=True)`?  Because:
 
@@ -197,49 +168,73 @@ def plot_fdt(df, title=None, events=False):
 
     Args:
         df (pandas.DataFrame): DataFrame to plot.
+        x (str): Name of column to use as x axis.
+        y (list[str]): Names of columns to plot on y axes.
         title (str): Title of plot. Default: None.
-        events (bool): Whether or not to plot events Default: False.
 
     Returns:
         list(matplotlib.axes.Axes): List of axes.
     """
-    n_plots = 3 if events else 2
-    fig, ax_arr = plt.subplots(n_plots, sharex=True)
+    num_plots = len(y)
+    fig, axes = plt.subplots(num_plots, sharex=True)
 
     for name, group in df.groupby(level='test'):
-        ax_arr[0].plot(df.loc[name].index, group['force'], label=name)
-        ax_arr[1].plot(df.loc[name].index, group['displacement'], label=name)
+        # Remove the test name level from the index
+        group.reset_index(inplace=True)
 
-        if events:
-            ax_arr[2].plot(df.loc[name].index, group['event'], label=name)
+        try:
+            # Assume axes is an array of axes
+            for ax_num, ax in enumerate(axes):
+                ax.plot(group[x], group[y[ax_num]], label=name)
+                ax.set_ylabel(y[ax_num])
 
-    if title is not None:
-        ax_arr[0].set_title(title)
+        except TypeError:
+            # Only 1 axis
+            axes.plot(group[x], group[y[0]], label=name)
+            axes.set_ylabel(y[0])
 
-    ax_arr[0].set_ylabel('Force N)')
-    ax_arr[1].set_ylabel('Displacement (mm)')
-    ax_arr[1].legend(loc='best')
+    try:
+        # Assume axes is an array of axes
+        if title is not None:
+            axes[0].set_title(title)
 
-    if events:
-        ax_arr[2].set_ylabel('Event')
-        ax_arr[2].set_xlabel('Time (s)')
+        axes[num_plots - 1].legend(loc='best')
+        axes[num_plots - 1].set_xlabel(x)
 
-    else:
-        ax_arr[1].set_xlabel('Time(s)')
+    except TypeError:
+        # Only 1 axis
+        if title is not None:
+            axes.set_title(title)
 
-    return ax_arr
+        axes.legend(loc='best')
+        axes.set_xlabel(x)
+
+    return axes
 
 
-def bar_fmean(df, title='Mean forces. Error bar is 1 standard deviation'):
+def bar(df, title='Mean force (N). Each error bar is 1 standard deviation',
+        y='force', agg=np.mean, yerr=np.std):
+    """Return bar chart of aggregate function 'agg' applied to column y.
+
+    Error bars can be set by an aggregate function yerr.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame to act on.
+        title (str): The chart title.
+        agg (function): Function to apply.  For examples, see
+        https://docs.scipy.org/doc/numpy-1.10.1/reference/routines.math.html
+        yerr (function): Aggregate function to calculate error bars.
+                         Set to None for no error bars.
     """
-    grouped_forces = df.groupby(level='test')['force']
+    group = df.groupby(level='test')[y]
 
-    # Calculate standard deviations
-    std = grouped_forces.std()
+    # Plot aggregate as a bar chart, with error bars
+    ax = group.agg(agg).plot(kind='bar', title=title, yerr=group.agg(yerr))
+    ax.set_ylabel(y)
 
-    # Plot means as a bar chart, with standard deviation as error bars
-    ax = grouped_forces.mean().plot(kind='bar', title=title, yerr=std)
-    ax.set_ylabel('Mean force (N)')
+    if title:
+        ax.set_title(title)
+
     return ax
 
 

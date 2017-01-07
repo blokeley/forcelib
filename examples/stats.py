@@ -6,26 +6,26 @@ python stats.py --help
 
 import matplotlib.pyplot as plt
 
-from forcelib import read_csv, plot_fd, bar_fmean, _parse_args
+import forcelib as flib
 
 if __name__ == '__main__':
     # Read command line arguments
-    args = _parse_args(__doc__)
+    args = flib._parse_args(__doc__)
 
     # Print the command line arguments
     print('Input file: {}'.format(str(args.file)))
     print('Skipped tests: {}'.format(args.exclude))
 
     # Read the CSV data into a pandas.DataFrame
-    forces = read_csv(str(args.file), args.exclude)
+    forces = flib.read_csv(str(args.file), args.exclude)
 
     # Plot the forces
-    plot_fd(forces, 'All displacements')
+    flib.plot(forces, 'All displacements')
     plt.show()
 
     # Select the first 5 mm of displacement
     first5mm = forces[forces['displacement'] < 5]
-    plot_fd(first5mm, 'First 5 mm')
+    flib.plot(first5mm, 'First 5 mm')
     plt.show()
 
     # Describe summary statistics for all tests
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     print()  # newline for clarity
 
     # Bar chart of mean forces
-    bar_fmean(first5mm)
+    flib.bar(first5mm)
     plt.show()
 
     # If you really want to select the second test by number

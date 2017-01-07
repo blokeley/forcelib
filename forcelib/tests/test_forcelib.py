@@ -65,11 +65,13 @@ class TestArrayFunctions(unittest.TestCase):
 
         frames = [pd.DataFrame({'force': [1.2, 1.3, 1.4, 1.5, 1.6],
                                 'displacement': [0.0, 0.3, 0.2, 0.5, 0.5],
+                                'minutes': [0.1, 0.2, 0.3, 0.4, 0.45],
                                 'event': [False, True, False, True, False],
                                 },
                                index=[6.0, 12, 18, 24, 27]),
                   pd.DataFrame({'force': [0.8, 0.5, 0.7, 0.8],
                                 'displacement': [0.0, 0.0, 0.3, 0.2],
+                                'minutes': [0.1, 0.25, 0.3, 0.4],
                                 'event':[True, True, True, False]},
                                index=[6.0, 15, 18, 24])]
 

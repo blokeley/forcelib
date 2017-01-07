@@ -9,7 +9,7 @@ import pandas as pd
 
 
 # Export public functions
-__all__ = ('read_csv', 'work', 'plot_fd', 'plot_v_time',
+__all__ = ('read_csv', 'work', 'plot_fd', 'plot_fdt', 'bar_fmean',
            '_parse_args')
 
 
@@ -113,20 +113,18 @@ def _to_dataframe(df, test_names=None):
         pandas.DataFrame: Columns are 'displacement', 'force' and 'event'.
             Index is (test_name, time)
     """
-    n_cols = df.shape[1] // 4
+    COLS_PER_TEST = 4
+    n_cols = df.shape[1] // COLS_PER_TEST
 
     frames = []
 
-    for test in range(n_cols):
-        force_col = 4 * test
-        frame = df.iloc[:, force_col:force_col + 4]
-        frame.columns = ['force', 'displacement', 'time', 'event']
+    for force_col in range(0, n_cols * COLS_PER_TEST, COLS_PER_TEST):
+        frame = df.iloc[:, force_col:force_col + 4].copy()
+        frame.columns = ['force', 'displacement', 'minutes', 'event']
+        frame.dropna(inplace=True)
 
-        # Convert minutes to seconds
-        frame['time'] = frame['time'] * 60
-
-        # Reindex on time
-        frame.set_index('time', inplace=True)
+        # Set the index to time in seconds
+        frame.set_index(frame['minutes'] * 60, inplace=True)
         frames.append(frame)
 
     if not test_names:
@@ -135,9 +133,6 @@ def _to_dataframe(df, test_names=None):
 
     df_all = pd.concat(frames, keys=test_names)
     df_all.index.names = ('test', 'time')
-
-    # Drop rows with NaNs
-    df_all.dropna(inplace=True)
 
     # Convert events to booleans
     df_all['event'] = df_all['event'].astype(bool)
@@ -189,7 +184,7 @@ def plot_fd(df, title=None, ax=None):
     return ax
 
 
-def plot_v_time(df, title=None, events=False):
+def plot_fdt(df, title=None, events=False):
     """Plot force and  displacement versus time on new figure, or on axes
     if given.
 
@@ -233,6 +228,19 @@ def plot_v_time(df, title=None, events=False):
         ax_arr[1].set_xlabel('Time(s)')
 
     return ax_arr
+
+
+def bar_fmean(df, title='Mean forces. Error bar is 1 standard deviation'):
+    """
+    grouped_forces = df.groupby(level='test')['force']
+
+    # Calculate standard deviations
+    std = grouped_forces.std()
+
+    # Plot means as a bar chart, with standard deviation as error bars
+    ax = grouped_forces.mean().plot(kind='bar', title=title, yerr=std)
+    ax.set_ylabel('Mean force (N)')
+    return ax
 
 
 def _int_set(arg):

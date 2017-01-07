@@ -6,7 +6,7 @@ python plot.py --help
 
 import matplotlib.pyplot as plt
 
-from forcelib import read_csv, plot_v_time,  _parse_args
+from forcelib import read_csv, plot_fdt,  _parse_args
 
 if __name__ == '__main__':
     # Read command line arguments
@@ -20,9 +20,9 @@ if __name__ == '__main__':
     forces = read_csv(str(args.file), args.exclude)
 
     # Plot forces and displacement versus time
-    plot_v_time(forces, str(args.file))
+    plot_fdt(forces, str(args.file))
     plt.show()
 
     # To plot events too, use
-    # plot_v_time(forces, str(args.file), True)
+    # plot_fdt(forces, str(args.file), True)
     # plt.show()

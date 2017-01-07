@@ -6,7 +6,7 @@ python stats.py --help
 
 import matplotlib.pyplot as plt
 
-from forcelib import read_csv, plot_fd, _parse_args
+from forcelib import read_csv, plot_fd, bar_fmean, _parse_args
 
 if __name__ == '__main__':
     # Read command line arguments
@@ -37,6 +37,10 @@ if __name__ == '__main__':
     print('Mean force for Test 2')
     print(first5mm.loc['Test 2']['force'].mean())
     print()  # newline for clarity
+
+    # Bar chart of mean forces
+    bar_fmean(first5mm)
+    plt.show()
 
     # If you really want to select the second test by number
     # rather than name, you could try the following.  The

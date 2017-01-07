@@ -9,7 +9,7 @@ import pandas as pd
 
 
 # Export public functions
-__all__ = ('read_csv', 'work', 'plot', 'bar', '_parse_args')
+__all__ = ('read_csv', 'work', 'plot', 'bar', 'set_names', '_parse_args')
 
 
 MAX_HEADER_ROWS = 10
@@ -137,6 +137,11 @@ def _to_dataframe(df, test_names=None):
     df_all['event'] = df_all['event'].astype(bool)
 
     return df_all
+
+
+def set_names(df, names):
+    """Set the test names."""
+    df.index.set_levels(names, level=0, inplace=True)
 
 
 def work(df):

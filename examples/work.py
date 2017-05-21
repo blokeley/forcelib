@@ -12,10 +12,6 @@ if __name__ == '__main__':
     # Read command line arguments
     args = flib._parse_args(__doc__)
 
-    # Print the command line arguments
-    print('Input file: {}'.format(str(args.file)))
-    print('Skipped tests: {}'.format(args.exclude))
-
     # Read the CSV data into a pandas.DataFrame
     forces = flib.read_csv(str(args.file), args.exclude)
 
@@ -26,5 +22,6 @@ if __name__ == '__main__':
     # Calculate the work for each test
     works = flib.work(forces_1to5mm)
 
-    works.plot(kind='bar', title='Work done (J)')
+    works.plot.bar(title='Work done (J)')
+    plt.tight_layout()
     plt.show()

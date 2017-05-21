@@ -12,10 +12,6 @@ if __name__ == '__main__':
     # Read command line arguments
     args = flib._parse_args(__doc__)
 
-    # Print the command line arguments
-    print('Input file: {}'.format(str(args.file)))
-    print('Skipped tests: {}'.format(args.exclude))
-
     # Read the CSV data into a pandas.DataFrame
     forces = flib.read_csv(str(args.file), args.exclude)
 
@@ -35,7 +31,7 @@ if __name__ == '__main__':
 
     # Print mean force for Test 2
     print('Mean force for Test 2')
-    print(first5mm.loc['Test 2']['force'].mean())
+    print(first5mm.loc['Test 2', 'force'].mean())
     print()  # newline for clarity
 
     # Bar chart of mean forces

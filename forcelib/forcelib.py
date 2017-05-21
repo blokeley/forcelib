@@ -12,8 +12,11 @@ import pandas as pd
 __all__ = ('read_csv', 'work', 'plot', 'bar', 'set_names', '_parse_args')
 
 
-MAX_HEADER_ROWS = 10
+_MAX_HEADER_ROWS = 10
 """Maximum number of header rows to search for start of data."""
+
+_COLS_PER_TEST = 4
+"""Columns of data in CSV file for each test."""
 
 
 def _count_headers(csv_data):
@@ -41,6 +44,15 @@ def _count_headers(csv_data):
     raise ValueError('Line starting with integer not found')
 
 
+def _get_test_names(csv_data, first_data_row_num):
+    """Return a list of test names"""
+    if first_data_row_num < 2:
+        raise ValueError('First data row number should be >= 2')
+
+    test_name_row = csv_data.splitlines()[first_data_row_num - 2]
+    return test_name_row.split(',')[::_COLS_PER_TEST]
+
+
 def read_csv(csv_filename, exclude=None):
     """Read the CSV file and return a multi-index DataFrame.
 
@@ -57,18 +69,15 @@ def read_csv(csv_filename, exclude=None):
     if exclude is None:
         exclude = []
 
-    # Count number of header lines, up to MAX_HEADER_ROWS
+    # Count number of header lines, up to _MAX_HEADER_ROWS
     with open(csv_filename) as f:
-        head = ''.join(next(f) for line_num in range(MAX_HEADER_ROWS))
+        head = ''.join(next(f) for line_num in range(_MAX_HEADER_ROWS))
 
     n_headers = _count_headers(head)
+    test_names = _get_test_names(head, n_headers)
 
     # Read all CSV data into one big numpy.ndarray
     all_data = pd.read_csv(csv_filename, skiprows=n_headers, header=None)
-
-    # Create column names so that test IDs are not lost
-    test_names = ['Test {}'.format(i) for i in
-                  range(1, 1 + (all_data.shape[1] // 4)) if i not in exclude]
 
     # Remove unwanted tests
     excluded = _exclude(all_data.shape[1], exclude)
@@ -105,20 +114,19 @@ def _to_dataframe(df, test_names=None):
     """Convert basic DataFrame to MultiIndex DataFrame.
 
     Args:
-        df [pandas.DataFrame]: raw DataFrame from CSV.
-        test_names [list(str)]: list of test names.
+        df: raw pandas.DataFrame from CSV.
+        test_names: list of test names.
 
     Returns:
         pandas.DataFrame: Columns are 'displacement', 'force' and 'event'.
             Index is (test_name, time)
     """
-    COLS_PER_TEST = 4
-    n_cols = df.shape[1] // COLS_PER_TEST
+    n_cols = df.shape[1] // _COLS_PER_TEST
 
     frames = []
 
-    for force_col in range(0, n_cols * COLS_PER_TEST, COLS_PER_TEST):
-        frame = df.iloc[:, force_col:force_col + 4].copy()
+    for force_col in range(0, n_cols * _COLS_PER_TEST, _COLS_PER_TEST):
+        frame = df.iloc[:, force_col:force_col + _COLS_PER_TEST].copy()
         frame.columns = ['force', 'displacement', 'minutes', 'event']
         frame.dropna(inplace=True)
 
@@ -126,7 +134,7 @@ def _to_dataframe(df, test_names=None):
         frame.set_index(frame['minutes'] * 60, inplace=True)
         frames.append(frame)
 
-    if not test_names:
+    if test_names is None:
         # Create test names
         test_names = ['Test {}'.format(i) for i in range(1, 1 + n_cols)]
 
@@ -140,7 +148,12 @@ def _to_dataframe(df, test_names=None):
 
 
 def set_names(df, names):
-    """Set the test names."""
+    """Set the test names.
+
+    Args:
+        df: A pandas.DataFrame with a MultiIndex of (test_name, time)
+        names: A sequence of test names to use
+    """
     df.index.set_levels(names, level=0, inplace=True)
 
 
@@ -213,6 +226,11 @@ def plot(df, x='displacement', y=['force'], title=None):
 
         axes.legend(loc='best')
         axes.set_xlabel(x)
+
+    # Reize for multiple subplots
+    width, height = fig.get_size_inches()
+    fig.set_size_inches(width, num_plots * height)
+    plt.tight_layout()
 
     return axes
 

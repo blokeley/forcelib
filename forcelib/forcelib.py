@@ -80,21 +80,21 @@ def read_csv(csv_filename, exclude=None):
     all_data = pd.read_csv(csv_filename, skiprows=n_headers, header=None)
 
     # Remove unwanted tests
-    excluded = _exclude(all_data.shape[1], exclude)
-    included = all_data.drop(all_data.columns[list(excluded)], axis=1)
+    excluded = _exclude(exclude)
+    included = all_data.drop(all_data.columns[list(excluded)], axis=1,
+                             errors='ignore')
 
     # Convert to a usable DataFrame
     return _to_dataframe(included, test_names)
 
 
-def _exclude(n_columns, tests_to_exclude=None):
+def _exclude(tests_to_exclude):
     """Return a sequence of column numbers to exclude.
 
-    The returned sequence lists all 4 columns of those in the
+    The returned sequence lists all columns of those in the
     tests_to_exclude argument.
 
     Args:
-        n_columns (int): the number of columns in the dataset.
         tests_to_exclude (sequence[int]): tests to exclude.
 
     Returns:
@@ -104,8 +104,8 @@ def _exclude(n_columns, tests_to_exclude=None):
 
     if tests_to_exclude:
         for test_num in tests_to_exclude:
-            for col_num in range(4):
-                excluded.add(col_num + 4 * (test_num - 1))
+            for col_num in range(_COLS_PER_TEST):
+                excluded.add(col_num + _COLS_PER_TEST * (test_num - 1))
 
     return excluded
 

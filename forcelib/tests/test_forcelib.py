@@ -95,15 +95,12 @@ class TestArrayFunctions(unittest.TestCase):
 
 class TestExclude(unittest.TestCase):
 
-    def setUp(self):
-        self.n_tests = 20
-
     def test_exclude(self):
         excluded = {1, 3}
         expected = {0, 1, 2, 3, 8, 9, 10, 11}
-        self.assertEqual(expected, _exclude(self.n_tests, excluded))
+        self.assertEqual(expected, _exclude(excluded))
 
     def test_none(self):
         # Assert no change if excluded is None or empty sequence
-        self.assertEqual(set(), _exclude(self.n_tests, None))
-        self.assertEqual(set(), _exclude(self.n_tests, set()))
+        self.assertEqual(set(), _exclude(None))
+        self.assertEqual(set(), _exclude(set()))

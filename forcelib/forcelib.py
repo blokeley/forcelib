@@ -11,9 +11,8 @@ import pandas as pd
 # Export public functions
 __all__ = ('read_csv', 'work', 'plot', 'bar', 'set_names', '_parse_args')
 
-
-_MAX_HEADER_ROWS = 10
-"""Maximum number of header rows to search for start of data."""
+_HEADER_ROWS_MAX = 10
+"""Maximum number of header rows to search in CSV for start of data."""
 
 _COLS_PER_TEST = 4
 """Columns of data in CSV file for each test."""
@@ -22,34 +21,29 @@ _COLS_PER_TEST = 4
 def _count_headers(csv_data):
     """Return the number of header rows in the CSV string data.
 
-    Header rows are defined by not starting with an integer.
+    Header rows are defined by having a number in their second column because
+    the first column contains the sample (test) name which could be a number.
 
     Raises:
-        ValueError: if no line starting with an integer is found.
+        ValueError: if cell is empty or cannot be converted to a float.
     """
     for line_num, line in enumerate(csv_data.splitlines()):
         try:
-            int(line[0])
+            # Try converting the second column to a float
+            float(line.split(',')[1])
             return line_num
 
-        except IndexError:
-            # There is no text
-            continue
-
         except ValueError:
-            # There is text, but it cannot be converted to an int
+            # Empty cell, or cannot be converted to a float
             continue
 
     # Raise a ValueError if no end to the headers was found
     raise ValueError('Line starting with integer not found')
 
 
-def _get_test_names(csv_data, first_data_row_num):
+def _get_test_names(csv_data):
     """Return a list of test names"""
-    if first_data_row_num < 2:
-        raise ValueError('First data row number should be >= 2')
-
-    test_name_row = csv_data.splitlines()[first_data_row_num - 2]
+    test_name_row = csv_data.splitlines()[2]
     return test_name_row.split(',')[::_COLS_PER_TEST]
 
 
@@ -69,12 +63,12 @@ def read_csv(csv_filename, exclude=None):
     if exclude is None:
         exclude = []
 
-    # Count number of header lines, up to _MAX_HEADER_ROWS
+    # Count number of header lines, up to _HEADER_ROWS_MAX
     with open(csv_filename) as f:
-        head = ''.join(next(f) for line_num in range(_MAX_HEADER_ROWS))
+        head = ''.join(next(f) for line_num in range(_HEADER_ROWS_MAX))
 
     n_headers = _count_headers(head)
-    test_names = _get_test_names(head, n_headers)
+    test_names = _get_test_names(head)
 
     # Read all CSV data into one big numpy.ndarray
     all_data = pd.read_csv(csv_filename, skiprows=n_headers, header=None)

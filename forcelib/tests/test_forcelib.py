@@ -36,9 +36,10 @@ class TestCountHeaders(unittest.TestCase):
     def test_count_headers(self):
         # Tests defined as expected number, input text
         tests = (
-            (3, "A\nB\nC\n0\n"),
-            (4, "A\nB\nC\nD\n0\n"),
-            (4, "A\nB\n\nD\n0\n"))
+            # Test without a blank line
+            (3, "Force,Distance\nN,mm\nSample 1,\n0.123,12.3\n"),
+            # Test with a blank line
+            (4, "Force,Distance\nN,mm\nSample 1,\n,\n1.23,12.3"))
 
         for test in tests:
             with self.subTest(test=test):
@@ -46,7 +47,7 @@ class TestCountHeaders(unittest.TestCase):
 
     def test_no_integer(self):
         with self.assertRaises(ValueError):
-            _count_headers("A\nB\nC\n")
+            _count_headers("Force,Distance\nN,mm\nSample 1,\n,\nX,Y")
 
 
 class TestArrayFunctions(unittest.TestCase):

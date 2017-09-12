@@ -144,11 +144,6 @@ def _to_dataframe(df: pd.DataFrame, test_names: Iterable[str]=None) \
         frame.set_index(frame['minutes'] * 60, inplace=True)
         frames.append(frame)
 
-    # TODO: remove autogeneration
-    if test_names is None:
-        # Create test names
-        test_names = ['Test {}'.format(i) for i in range(1, 1 + n_cols)]
-
     df_all = pd.concat(frames, keys=test_names)
     df_all.index.names = ('test', 'time')
 

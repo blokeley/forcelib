@@ -24,7 +24,7 @@
 
 import argparse
 import pathlib
-from typing import Iterable, List, Optional, Set, Sequence
+from typing import Callable, Iterable, List, Optional, Set, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -244,7 +244,8 @@ def plot(df: pd.DataFrame, x: str='displacement', y: List[str]=['force'],
 
 def bar(df: pd.DataFrame,
         title: str='Mean force (N). Each error bar is 1 standard deviation',
-        y: str='force', agg=np.mean, yerr=np.std) -> plt.Axes:
+        y: str='force', agg: Callable[[None], np.ndarray]=np.mean,
+        yerr: Callable[[None], np.ndarray]=np.std) -> plt.Axes:
     """Return bar chart of aggregate function 'agg' applied to column y.
 
     Error bars can be set by an aggregate function yerr.

@@ -24,13 +24,14 @@
 
 import argparse
 import pathlib
+from typing import Iterable, List, Optional, Set, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 
-__version__ = '1.3.0'
+__version__ = '1.4.0'
 
 # Export public functions
 __all__ = ('read_csv', 'work', 'plot', 'bar', 'set_names', '_parse_args')
@@ -42,7 +43,7 @@ _COLS_PER_TEST = 4
 """Columns of data in CSV file for each test."""
 
 
-def _count_headers(csv_data):
+def _count_headers(csv_data: str) -> int:
     """Return the number of header rows in the CSV string data.
 
     Header rows are defined by having a number in their second column because
@@ -65,28 +66,24 @@ def _count_headers(csv_data):
     raise ValueError('Line starting with integer not found')
 
 
-def _get_test_names(csv_data):
+def _get_test_names(csv_data: str) -> Iterable[str]:
     """Return a list of test names"""
     test_name_row = csv_data.splitlines()[2]
     return test_name_row.split(',')[::_COLS_PER_TEST]
 
 
-def read_csv(csv_filename, exclude=None):
+def read_csv(csv_filename: str, exclude: Set[int]=None) -> pd.DataFrame:
     """Read the CSV file and return a multi-index DataFrame.
 
     Args:
         csv_filename (str or file pointer): CSV file from Emperor.
-        exclude (list[int]): List of test numbers to exclude.  1-indexed.
+        exclude: Set of test numbers to exclude.  1-indexed.
 
     Returns:
-        pandas.DataFrame: Columns are 'displacement (mm)',
-                                      'force (N)', and
-                                      'event (boolean)'.
-                          Index is (test_name, time (s))
+        DataFrame with columns of ('displacement (mm)', 'force (N)',
+        'minutes', 'event (boolean)').
+        The index is a MultiIndex of (test_name, time (s))
     """
-    if exclude is None:
-        exclude = []
-
     # Count number of header lines, up to _HEADER_ROWS_MAX
     with open(csv_filename) as f:
         head = ''.join(next(f) for line_num in range(_HEADER_ROWS_MAX))
@@ -106,17 +103,11 @@ def read_csv(csv_filename, exclude=None):
     return _to_dataframe(included, test_names)
 
 
-def _exclude(tests_to_exclude):
+def _exclude(tests_to_exclude: Optional[Set[int]]) -> Set[int]:
     """Return a sequence of column numbers to exclude.
 
     The returned sequence lists all columns of those in the
     tests_to_exclude argument.
-
-    Args:
-        tests_to_exclude (sequence[int]): tests to exclude.
-
-    Returns:
-        A sequence of column numbers to exclude.
     """
     excluded = set()
 
@@ -128,7 +119,8 @@ def _exclude(tests_to_exclude):
     return excluded
 
 
-def _to_dataframe(df, test_names=None):
+def _to_dataframe(df: pd.DataFrame, test_names: Iterable[str]=None) \
+                  -> pd.DataFrame:
     """Convert basic DataFrame to MultiIndex DataFrame.
 
     Args:
@@ -136,8 +128,8 @@ def _to_dataframe(df, test_names=None):
         test_names: list of test names.
 
     Returns:
-        pandas.DataFrame: Columns are 'displacement', 'force' and 'event'.
-            Index is (test_name, time)
+        DataFrame with columns ('displacement (mm)', 'force (N)',
+        'minutes', 'event (boolean)'). Index is (test_name, time)
     """
     n_cols = df.shape[1] // _COLS_PER_TEST
 
@@ -152,6 +144,7 @@ def _to_dataframe(df, test_names=None):
         frame.set_index(frame['minutes'] * 60, inplace=True)
         frames.append(frame)
 
+    # TODO: remove autogeneration
     if test_names is None:
         # Create test names
         test_names = ['Test {}'.format(i) for i in range(1, 1 + n_cols)]
@@ -165,7 +158,7 @@ def _to_dataframe(df, test_names=None):
     return df_all
 
 
-def set_names(df, names):
+def set_names(df: pd.DataFrame, names: Iterable[str]) -> None:
     """Set the test names.
 
     Args:
@@ -175,16 +168,16 @@ def set_names(df, names):
     df.index.set_levels(names, level=0, inplace=True)
 
 
-def work(df):
+def work(df: pd.DataFrame) -> pd.Series:
     """Calculate the work done in Joules.
 
     Work done is the area under the force-displacement curve.
 
     Args:
-        df (pandas.DataFrame): DataFrame of force-displacement results.
+        df: Force-displacement results.
 
     Returns:
-        pandas.Series: Work done in Joules, with index of test names.
+        Work done in Joules, with index of test names.
     """
     def _work(df):
         return np.trapz(df['force'], df['displacement']) / 1000
@@ -192,7 +185,8 @@ def work(df):
     return df.groupby(level='test').apply(_work)
 
 
-def plot(df, x='displacement', y=['force'], title=None):
+def plot(df: pd.DataFrame, x: str='displacement', y: List[str]=['force'],
+         title: str=None) -> Iterable[plt.Axes]:
     """Plot given columns (y) on new figure, or on axes ax if given.
 
     Why not just use `df.groupby(level='test').plot(subplots=True)`?  Because:
@@ -203,13 +197,13 @@ def plot(df, x='displacement', y=['force'], title=None):
        numbers of tests.
 
     Args:
-        df (pandas.DataFrame): DataFrame to plot.
-        x (str): Name of column to use as x axis.
-        y (list[str]): Names of columns to plot on y axes.
-        title (str): Title of plot. Default: None.
+        df: DataFrame to plot.
+        x: Name of column to use as x axis.
+        y: Names of columns to plot on y axes.
+        title: Title of plot. Default: None.
 
     Returns:
-        list(matplotlib.axes.Axes): List of axes.
+        List of axes.
     """
     num_plots = len(y)
     fig, axes = plt.subplots(num_plots, sharex=True)
@@ -253,15 +247,16 @@ def plot(df, x='displacement', y=['force'], title=None):
     return axes
 
 
-def bar(df, title='Mean force (N). Each error bar is 1 standard deviation',
-        y='force', agg=np.mean, yerr=np.std):
+def bar(df: pd.DataFrame,
+        title: str='Mean force (N). Each error bar is 1 standard deviation',
+        y: str='force', agg=np.mean, yerr=np.std) -> plt.Axes:
     """Return bar chart of aggregate function 'agg' applied to column y.
 
     Error bars can be set by an aggregate function yerr.
 
     Args:
-        df (pandas.DataFrame): The DataFrame to act on.
-        title (str): The chart title.
+        df: The DataFrame to act on.
+        title: The chart title.
         agg (function): Function to apply.  For examples, see
         https://docs.scipy.org/doc/numpy-1.10.1/reference/routines.math.html
         yerr (function): Aggregate function to calculate error bars.
@@ -279,23 +274,23 @@ def bar(df, title='Mean force (N). Each error bar is 1 standard deviation',
     return ax
 
 
-def _int_set(arg):
+def _int_set(arg: str) -> Set[int]:
     """Convert comma-separated string to set of ints."""
     return set(int(n) for n in arg.split(','))
 
 
-def _parse_args(description=None, args=None):
+def _parse_args(description: str=None, args: Optional[Sequence[str]]=None) \
+                -> argparse.Namespace:
     """Convenience function to parse command line arguments.
 
     This function may be removed in future versions of forcelib.
 
     Args:
-        description (str): Description of the program.
-        args (list[str]): Command line arguments to parse.  Defaults to reading
-                          from sys.argv.
+        description: Description of the program.
+        args: Command line arguments to parse.  Defaults to sys.argv.
 
     Returns:
-        argparse.Namespace: Namespace object containing arguments.
+        Namespace object containing arguments.
     """
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('file', type=pathlib.Path, help='CSV file')

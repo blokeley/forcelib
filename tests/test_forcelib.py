@@ -5,8 +5,8 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from ..forcelib import (_parse_args, _count_headers, _int_set, _exclude,
-                        _to_dataframe, work)
+from forcelib import (_parse_args, _count_headers, _int_set, _exclude,
+                      _to_dataframe, work)
 
 
 def assertFrameEqual(df1, df2, **kwds):

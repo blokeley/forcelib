@@ -6,7 +6,7 @@ https://github.com/pypa/sampleproject
 """
 
 # Always prefer setuptools over distutils
-from setuptools import setup, find_packages
+from setuptools import setup
 # To use a consistent encoding
 from codecs import open
 import io
@@ -44,7 +44,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version=find_version('forcelib', '__init__.py'),
+    version=find_version('forcelib.py'),
 
     description='Read CSV files from Mecmesin tensometer Emperor software',
     long_description=long_description,
@@ -53,7 +53,7 @@ setup(
     url='https://github.com/blokeley/forcelib/',
 
     # Author details
-    author='blokeley',
+    author='Tom Oakley',
     # author_email='john@example.com',
 
     # Choose your license
@@ -65,7 +65,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
@@ -80,8 +80,7 @@ setup(
         # that you indicate whether you support Python 2, Python 3 or both.
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
 
         # Topics
         'Topic :: Scientific/Engineering :: Information Analysis',
@@ -93,7 +92,8 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    # packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    py_modules=['forcelib.py'],
 
     # List run-time dependencies here.  These will be installed by pip when
     # your project is installed. For an analysis of "install_requires" vs pip's

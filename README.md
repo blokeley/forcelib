@@ -24,12 +24,12 @@ The author has no affiliation with Mecmesin.
 
 The recommended set-up is to install
 [Anaconda](https://www.continuum.io/downloads).  Ensure that you install the
-Python 3.4+ verion. If you do this, you will have all of the requirements
+Python 3.6+ version. If you do this, you will have all of the requirements
 satisfied.
 
 The actual requirements are:
 
-- Python 3.4+
+- Python 3.6+
 - pandas
 - numpy
 - matplotlib
@@ -37,20 +37,17 @@ The actual requirements are:
 
 # Installation
 
-## Official method
+## Quick and easy
 
-1. `git checkout https://github.com/blokeley/forcelib/`
-2. `cd forcelib`
-3. `pip install -e .`
+Copy [forcelib.py](forcelib.py) to your local working directory.
+
+## Updatable using `pip`
+
+`pip install git+https://github.com/blokeley/forcelib/`
 
 To update:
 
-1. `git pull`
-
-## Quick-and-dirty method
-
-1. Copy https://raw.githubusercontent.com/blokeley/forcelib/master/forcelib/forcelib.py
-   to the directory in which you will be working
+`pip install -U forcelib`
 
 If there is much demand from other users, I would consider uploading the
 package to PyPI.

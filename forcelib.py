@@ -31,7 +31,7 @@ import numpy as np
 import pandas as pd
 
 
-__version__ = '1.4.0'
+__version__ = '1.5.0'
 
 # Export public functions
 __all__ = ('read_csv', 'work', 'plot', 'bar', 'set_names', '_parse_args')

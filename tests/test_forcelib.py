@@ -61,9 +61,9 @@ class TestArrayFunctions(unittest.TestCase):
                                 [1.6, 0.5, 0.45, 0, np.nan, np.nan, np.nan,
                                 np.nan]])
 
-    def test_to_dataframe(self):
-        test_names = ['Test {}'.format(i) for i in range(1, 3)]
+        self.test_names = ['Test {}'.format(i) for i in range(1, 3)]
 
+    def test_to_dataframe(self):
         frames = [pd.DataFrame({'force': [1.2, 1.3, 1.4, 1.5, 1.6],
                                 'displacement': [0.0, 0.3, 0.2, 0.5, 0.5],
                                 'minutes': [0.1, 0.2, 0.3, 0.4, 0.45],
@@ -76,11 +76,11 @@ class TestArrayFunctions(unittest.TestCase):
                                 'event':[True, True, True, False]},
                                index=[6.0, 15, 18, 24])]
 
-        expected = pd.concat(frames, keys=test_names)
+        expected = pd.concat(frames, keys=self.test_names)
         expected.index.names = ('test', 'time')
 
         # Create the results DataFrame
-        result = _to_dataframe(self.df, test_names)
+        result = _to_dataframe(self.df, self.test_names)
 
         # Run test
         assertFrameEqual(result, expected)
@@ -90,7 +90,7 @@ class TestArrayFunctions(unittest.TestCase):
                              index=('Test 1', 'Test 2'),
                              name='test')
 
-        df = _to_dataframe(self.df)
+        df = _to_dataframe(self.df, self.test_names)
         self.assertTrue(work(df).equals(expected))
 
 

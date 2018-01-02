@@ -203,7 +203,7 @@ def plot(df: pd.DataFrame, x: str='displacement', y: List[str]=['force'],
     num_plots = len(y)
     fig, axes = plt.subplots(num_plots, sharex=True)
 
-    for name, group in df.groupby(level='test'):
+    for name, group in df.groupby(level=0):
         # Remove the test name level from the index
         group.reset_index(inplace=True)
 
@@ -258,7 +258,7 @@ def bar(df: pd.DataFrame,
         yerr (function): Aggregate function to calculate error bars.
                          Set to None for no error bars.
     """
-    group = df.groupby(level='test')[y]
+    group = df.groupby(level=0)[y]
 
     # Plot aggregate as a bar chart, with error bars
     ax = group.agg(agg).plot(kind='bar', title=title, yerr=group.agg(yerr))

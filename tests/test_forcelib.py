@@ -12,6 +12,8 @@ from forcelib import (_parse_args, _count_headers, _int_set, _exclude,
 def assertFrameEqual(df1, df2, **kwds):
     """ Assert that two dataframes are equal, ignoring ordering of columns"""
     from pandas.util.testing import assert_frame_equal
+
+    # Sort the columns then assert equal
     return assert_frame_equal(df1.sort_index(axis=1), df2.sort_index(axis=1),
                               check_names=True, **kwds)
 

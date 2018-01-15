@@ -19,6 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+#
+# Get the latest version from https://github.com/blokeley/forcelib
 
 """Utility functions for working with force data from Mecmsin tensometers."""
 
@@ -177,7 +179,7 @@ def work(df: pd.DataFrame) -> pd.Series:
     def _work(df):
         return np.trapz(df['force'], df['displacement']) / 1000
 
-    return df.groupby(level='test').apply(_work)
+    return df.groupby(level=0).apply(_work)
 
 
 def plot(df: pd.DataFrame, x: str='displacement', y: List[str]=['force'],

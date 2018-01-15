@@ -39,7 +39,7 @@ The actual requirements are:
 
 ## Quick and easy
 
-Copy [forcelib.py](forcelib.py) to your local working directory.
+Copy [forcelib.py](forcelib.py) and, optionally, [arraylib](arraylib.py) to your local working directory.
 
 ## Updatable using `pip`
 

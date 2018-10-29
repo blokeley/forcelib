@@ -28,12 +28,13 @@ import argparse
 import pathlib
 from typing import Callable, Iterable, List, Optional, Set, Sequence
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 
-__version__ = '1.5.0'
+__version__ = '1.5.1'
 
 # Export public functions
 __all__ = ('read_csv', 'work', 'plot', 'bar', 'set_names', '_parse_args')
@@ -93,7 +94,7 @@ def read_csv(csv_filename: str, exclude: Set[int]=None) -> pd.DataFrame:
     n_headers = _count_headers(head)
     test_names = _get_test_names(head)
 
-    # Read all CSV data into one big numpy.ndarray
+    # Read all CSV data into one big pd.DataFrame
     all_data = pd.read_csv(csv_filename, skiprows=n_headers, header=None)
 
     # Remove unwanted tests
@@ -183,7 +184,7 @@ def work(df: pd.DataFrame) -> pd.Series:
 
 
 def plot(df: pd.DataFrame, x: str='displacement', y: List[str]=['force'],
-         title: str=None) -> Iterable[plt.Axes]:
+         title: str=None, ax: mpl.axes.Axes=None) -> Iterable[plt.Axes]:
     """Plot given columns (y) on new figure, or on axes ax if given.
 
     Why not just use `df.groupby(level='test').plot(subplots=True)`?  Because:
@@ -203,7 +204,13 @@ def plot(df: pd.DataFrame, x: str='displacement', y: List[str]=['force'],
         List of axes.
     """
     num_plots = len(y)
-    fig, axes = plt.subplots(num_plots, sharex=True)
+
+    if ax:
+        axes = ax
+        fig = ax.get_figure()
+
+    else:
+        fig, axes = plt.subplots(num_plots, sharex=True)
 
     for name, group in df.groupby(level=0):
         # Remove the test name level from the index

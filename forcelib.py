@@ -35,7 +35,7 @@ import pandas as pd
 from pandas.errors import ParserError
 
 
-__version__ = '1.5.2'
+__version__ = '1.6.0'
 
 # Export public functions
 __all__ = ('read_csv', 'work', 'plot', 'bar', 'set_names', '_parse_args')
@@ -70,13 +70,19 @@ def _count_headers(csv_data: str) -> int:
     raise ValueError('Line starting with integer not found')
 
 
-def _get_test_names(csv_data: str) -> Iterable[str]:
+def _get_test_names(csv_data: str,
+                    kind: str = 'force') -> Iterable[str]:
     """Return a list of test names"""
-    test_name_row = csv_data.splitlines()[2]
+    name_row = 2 if kind == 'force' else 0
+
+    test_name_row = csv_data.splitlines()[name_row]
+
     return test_name_row.split(',')[::_COLS_PER_TEST]
 
 
-def read_csv(csv_filename: str, exclude: Set[int]=None) -> pd.DataFrame:
+def read_csv(csv_filename: str,
+             exclude: Set[int] = None,
+             kind='force') -> pd.DataFrame:
     """Read the CSV file and return a multi-index DataFrame.
 
     Args:
@@ -88,12 +94,15 @@ def read_csv(csv_filename: str, exclude: Set[int]=None) -> pd.DataFrame:
         'minutes', 'event (boolean)').
         The index is a MultiIndex of (test_name, time (s))
     """
+    if kind not in ['force', 'torque']:
+        raise ValueError(f'Data kind {kind} not recognised')
+
     # Count number of header lines, up to _HEADER_ROWS_MAX
     with open(csv_filename) as f:
         head = ''.join(next(f) for line_num in range(_HEADER_ROWS_MAX))
 
     n_headers = _count_headers(head)
-    test_names = _get_test_names(head)
+    test_names = _get_test_names(head, kind)
 
     # Read all CSV data into one big pd.DataFrame
     try:
@@ -112,7 +121,7 @@ def read_csv(csv_filename: str, exclude: Set[int]=None) -> pd.DataFrame:
                              errors='ignore')
 
     # Convert to a usable DataFrame
-    return _to_dataframe(included, test_names)
+    return _to_dataframe(included, test_names, kind)
 
 
 def _exclude(tests_to_exclude: Optional[Set[int]]) -> Set[int]:
@@ -131,8 +140,9 @@ def _exclude(tests_to_exclude: Optional[Set[int]]) -> Set[int]:
     return excluded
 
 
-def _to_dataframe(df: pd.DataFrame, test_names: Iterable[str]=None) \
-                  -> pd.DataFrame:
+def _to_dataframe(df: pd.DataFrame,
+                  test_names: Iterable[str] = None,
+                  kind: str = 'force') -> pd.DataFrame:
     """Convert basic DataFrame to MultiIndex DataFrame.
 
     Args:
@@ -141,19 +151,25 @@ def _to_dataframe(df: pd.DataFrame, test_names: Iterable[str]=None) \
 
     Returns:
         DataFrame with columns ('displacement (mm)', 'force (N)',
-        'minutes', 'event (boolean)'). Index is (test_name, time)
+        'minutes', 'event (boolean)'). Index is (test_name, time).
     """
-    n_cols = df.shape[1] // _COLS_PER_TEST
+    print(kind)
+    if kind == 'force':
+        column_names = ['force', 'displacement', 'minutes', 'event']
+
+    else:
+        column_names = ['torque', 'angle', 'minutes', 'event']
 
     frames = []
 
-    for force_col in range(0, n_cols * _COLS_PER_TEST, _COLS_PER_TEST):
+    for force_col in range(0, df.shape[1], _COLS_PER_TEST):
         frame = df.iloc[:, force_col:force_col + _COLS_PER_TEST].copy()
-        frame.columns = ['force', 'displacement', 'minutes', 'event']
+        frame.columns = column_names
         frame.dropna(inplace=True)
 
         # Set the index to time in seconds
         frame.set_index(frame['minutes'] * 60, inplace=True)
+        frame.index.name = 'seconds'
         frames.append(frame)
 
     df_all = pd.concat(frames, keys=test_names)
@@ -192,8 +208,11 @@ def work(df: pd.DataFrame) -> pd.Series:
     return df.groupby(level=0).apply(_work)
 
 
-def plot(df: pd.DataFrame, x: str='displacement', y: List[str]=['force'],
-         title: str=None, ax: mpl.axes.Axes=None) -> Iterable[plt.Axes]:
+def plot(df: pd.DataFrame,
+         x: str = 'displacement',
+         y: List[str] = ['force'],
+         title: str = None,
+         ax: mpl.axes.Axes = None) -> Iterable[plt.Axes]:
     """Plot given columns (y) on new figure, or on axes ax if given.
 
     Why not just use `df.groupby(level='test').plot(subplots=True)`?  Because:
@@ -223,7 +242,7 @@ def plot(df: pd.DataFrame, x: str='displacement', y: List[str]=['force'],
 
     for name, group in df.groupby(level=0):
         # Remove the test name level from the index
-        group.reset_index(inplace=True)
+        group.index = group.index.droplevel()
 
         try:
             # Assume axes is an array of axes
@@ -261,9 +280,10 @@ def plot(df: pd.DataFrame, x: str='displacement', y: List[str]=['force'],
 
 
 def bar(df: pd.DataFrame,
-        title: str='Mean force (N). Each error bar is 1 standard deviation',
-        y: str='force', agg: Callable[[None], np.ndarray]=np.mean,
-        yerr: Callable[[None], np.ndarray]=np.std) -> plt.Axes:
+        title: str = 'Mean force (N). Each error bar is 1 standard deviation',
+        y: str = 'force',
+        agg: Callable[[None], np.ndarray] = np.mean,
+        yerr: Callable[[None], np.ndarray] = np.std) -> plt.Axes:
     """Return bar chart of aggregate function 'agg' applied to column y.
 
     Error bars can be set by an aggregate function yerr.
@@ -293,7 +313,8 @@ def _int_set(arg: str) -> Set[int]:
     return set(int(n) for n in arg.split(','))
 
 
-def _parse_args(description: str=None, args: Optional[Sequence[str]]=None) \
+def _parse_args(description: str = None,
+                args: Optional[Sequence[str]] = None) \
                 -> argparse.Namespace:
     """Convenience function to parse command line arguments.
 

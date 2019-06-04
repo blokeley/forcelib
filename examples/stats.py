@@ -45,3 +45,6 @@ if __name__ == '__main__':
     # inclusive using
     # tests2to5 = first5mm.loc[first5mm.index.levels[0][1] :
     #                          first5mm.index.levels[0][4]]
+    #
+    # or if you know the test names:
+    # tests = first5mm.loc[slice('Sample 1', 'Sample 4'), :]

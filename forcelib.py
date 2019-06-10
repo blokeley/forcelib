@@ -35,7 +35,7 @@ import pandas as pd
 from pandas.errors import ParserError
 
 
-__version__ = '1.6.0'
+__version__ = '1.6.1'
 
 # Export public functions
 __all__ = ('read_csv', 'work', 'plot', 'bar', 'set_names', '_parse_args')
@@ -153,7 +153,6 @@ def _to_dataframe(df: pd.DataFrame,
         DataFrame with columns ('displacement (mm)', 'force (N)',
         'minutes', 'event (boolean)'). Index is (test_name, time).
     """
-    print(kind)
     if kind == 'force':
         column_names = ['force', 'displacement', 'minutes', 'event']
 
